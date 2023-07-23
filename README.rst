@@ -76,10 +76,8 @@ Refunds
 .. image:: images/14-Refund-Option.png
 .. image:: images/15-Refund-Form.png
 
-
 Change Log
 ==========
-
 1.0.
 --------------------
 * Initial release.
