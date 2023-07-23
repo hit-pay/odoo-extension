@@ -133,6 +133,7 @@ class PaymentTransaction(models.Model):
         self.hitpay_payment_status = notification_data.get('status')
         self.hitpay_payment_amount = notification_data.get('amount')
         self.hitpay_payment_currency = notification_data.get('currency')
+        self.provider_reference = payment_id
         
         reference_number = notification_data.get('reference_number')
         
@@ -141,10 +142,13 @@ class PaymentTransaction(models.Model):
         if not payment_status:
             raise ValidationError("Hitpay: " + _("Received data with missing status."))
 
+        message = "Payment successful. Transaction Id: "+self.hitpay_payment_id+", "
+        message += "Amount Paid: "+self.hitpay_payment_amount
+
         if payment_status in TRANSACTION_STATUS_MAPPING['pending']:
-            self._set_pending()
+            self._set_pending(state_message=message)
         elif payment_status in TRANSACTION_STATUS_MAPPING['done']:
-            self._set_done()
+            self._set_done(state_message=message)
         elif payment_status in TRANSACTION_STATUS_MAPPING['canceled']:
             self._set_canceled()
         else:  # Classify unsupported payment status as the `error` tx state.
@@ -165,6 +169,9 @@ class PaymentTransaction(models.Model):
         :return: The refund transaction created to process the refund request.
         :rtype: recordset of `payment.transaction`
         """
+
+        self.ensure_one()
+        
         refund_tx = super()._send_refund_request(amount_to_refund=amount_to_refund)
         if self.provider_code != 'hitpay':
             return refund_tx
@@ -172,13 +179,12 @@ class PaymentTransaction(models.Model):
         # Make the refund request to Hitpay
         converted_amount = payment_utils.to_minor_currency_units(
             -refund_tx.amount,  # The amount is negative for refund transactions
-            refund_tx.currency_id,
-            arbitrary_decimal_number=2
+            refund_tx.currency_id
         )
 
         payload = {
             'payment_id': self.hitpay_payment_id,
-            'amount': converted_amount,
+            'amount': amount_to_refund,
         }
         
         response_content = refund_tx.provider_id._hitpay_make_request(
@@ -196,12 +202,15 @@ class PaymentTransaction(models.Model):
         self.hitpay_refund_amount = response_content.get('amount_refunded')
         self.hitpay_refund_currency = response_content.get('currency')
 
+        self.provider_reference = self.hitpay_refund_id
+
         message = "Refund successful. Refund Reference Id: "+self.hitpay_refund_id+", "
         message += "Payment Id: "+self.hitpay_payment_id+", "
         message += "Amount Refunded: "+self.hitpay_refund_amount+", "
         message += "Payment Method: "+response_content.get('payment_method')+", "
         message += "Created At: "+ self.hitpay_refund_createdat
 
-        self._set_done(state_message=message)
+        self._set_done()
+        self.env.ref('payment.cron_post_process_payment_tx')._trigger()
 
         return refund_tx
