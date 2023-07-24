@@ -29,6 +29,7 @@ Then, youcan choose  one of these instructions:
 
 In your Odoo administrator interface, browse to "Applications" tab, delete "Applications" filter from
 search field and search for "hitpay" keyword. Click "Install" (or "Upgrade") button of the "HitPay Payment Gateway Provider" module.
+
 .. image:: images/3-Locate-HitPay-App-Click-Activate-Button-To-Install-App.png
 
 Configuration
