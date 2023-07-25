@@ -13,7 +13,7 @@
 		'data/payment_icon_data.xml',
         'data/payment_provider_data.xml',
     ],
-    'images': ['static/description/logo.png'],
+    'images': ['images/main_screenshot.png'],
     'application': True,
     'installable': True,
     'post_init_hook': 'post_init_hook',
