@@ -1,7 +1,7 @@
 Installation & Upgrade
 ---------------------------
 
-Download the latest module archive from https://github.com/hit-pay/odoo-extension/releases.
+Download the latest module archive.
 
 Now unzip the downloaded archive and copy the new payment_hitpay folder to Odoo addons directory. 
 
