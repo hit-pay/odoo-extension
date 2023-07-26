@@ -84,6 +84,7 @@ class PaymentTransaction(models.Model):
             'webhook': webhook_url,
             'name': self.partner_name,
             'email': self.partner_email,
+            'channel': 'api_odoo'
         }
 
     def _get_tx_from_notification_data(self, provider_code, notification_data):
