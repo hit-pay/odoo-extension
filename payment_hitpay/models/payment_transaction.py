@@ -40,14 +40,14 @@ class PaymentTransaction(models.Model):
         :rtype: dict
         """
         res = super()._get_specific_rendering_values(processing_values)
-        if self.provider_code != 'hitpay':
+        if self.provider != 'hitpay':
             return res
 
         # Initiate the payment and retrieve the payment link data.
         payload = self._hitpay_prepare_preference_request_payload()
 
         
-        payment_response = self.provider_id._hitpay_make_request(
+        payment_response = self.acquirer_id._hitpay_make_request(
             '/payment-requests', payload=payload
         )
         
@@ -68,13 +68,15 @@ class PaymentTransaction(models.Model):
         :return: The request payload.
         :rtype: dict
         """
-        base_url = self.provider_id.get_base_url()
+        base_url = self.acquirer_id.get_base_url()
         return_url = urls.url_join(
             base_url, f'{HitpayController._return_url}'
         )
         webhook_url = urls.url_join(
             base_url, f'{HitpayController._webhook_url}/{self.reference}'
-        )  # Append the reference to identify the transaction from the webhook notification data.
+        )  # Append the reference to identify the transaction from the webhook data.
+        
+        webhook_url = 'https://95ce-2402-3a80-41d-f968-99f8-94fa-8e32-a4c5.ngrok-free.app'
 
         return {
             'reference_number': self.reference,
@@ -87,58 +89,58 @@ class PaymentTransaction(models.Model):
             'channel': 'api_odoo'
         }
 
-    def _get_tx_from_notification_data(self, provider_code, notification_data):
+    def _get_tx_from_feedback_data(self, provider, data):
         """ Override of `payment` to find the transaction based on Hitpay data.
 
-        :param str provider_code: The code of the provider that handled the transaction.
-        :param dict notification_data: The notification data sent by the provider.
+        :param str provider: The provider of the acquirer that handled the transaction
+        :param dict data: The data sent by the provider.
         :return: The transaction if found.
         :rtype: recordset of `payment.transaction`
         :raise ValidationError: If inconsistent data were received.
         :raise ValidationError: If the data match no transaction.
         """
-        tx = super()._get_tx_from_notification_data(provider_code, notification_data)
-        if provider_code != 'hitpay' or len(tx) == 1:
+        tx = super()._get_tx_from_feedback_data(provider, data)
+        if provider != 'hitpay' or len(tx) == 1:
             return tx
 
-        reference = notification_data.get('reference_number')
+        reference = data.get('reference_number')
         if not reference:
             raise ValidationError("Hitpay: " + _("Received data with missing reference."))
 
-        tx = self.search([('reference', '=', reference), ('provider_code', '=', 'hitpay')])
+        tx = self.search([('reference', '=', reference), ('provider', '=', 'hitpay')])
         if not tx:
             raise ValidationError(
                 "Hitpay: " + _("No transaction found matching reference %s.", reference)
             )
         return tx
 
-    def _process_notification_data(self, notification_data):
+    def _process_feedback_data(self, data):
         """ Override of `payment` to process the transaction based on Hitpay data.
 
-        Note: self.ensure_one() from `_process_notification_data`
+        Note: self.ensure_one() from `_process_feedback_data`
 
-        :param dict notification_data: The notification data sent by the provider.
+        :param dict data: The data sent by the provider.
         :return: None
         :raise ValidationError: If inconsistent data were received.
         """
-        super()._process_notification_data(notification_data)
-        if self.provider_code != 'hitpay':
+        super()._process_feedback_data(data)
+        if self.provider != 'hitpay':
             return
 
-        payment_id = notification_data.get('payment_id')
+        payment_id = data.get('payment_id')
         if not payment_id:
             raise ValidationError("Hitpay: " + _("Received data with missing payment id."))
         
         self.hitpay_payment_id = payment_id
         self.hitpay_transaction_id = payment_id
-        self.hitpay_payment_status = notification_data.get('status')
-        self.hitpay_payment_amount = notification_data.get('amount')
-        self.hitpay_payment_currency = notification_data.get('currency')
-        self.provider_reference = payment_id
+        self.hitpay_payment_status = data.get('status')
+        self.hitpay_payment_amount = data.get('amount')
+        self.hitpay_payment_currency = data.get('currency')
+        self.acquirer_reference = payment_id
         
-        reference_number = notification_data.get('reference_number')
+        reference_number = data.get('reference_number')
         
-        payment_status = notification_data.get('status')
+        payment_status = data.get('status')
 
         if not payment_status:
             raise ValidationError("Hitpay: " + _("Received data with missing status."))
@@ -161,7 +163,7 @@ class PaymentTransaction(models.Model):
                 "Hitpay: " + _("Received data with invalid status: %s", payment_status)
             )
 
-    def _send_refund_request(self, amount_to_refund=None):
+    def _send_refund_request(self, amount_to_refund=None, create_refund_transaction=True):
         """ Override of payment to send a refund request to Hitpay.
 
         Note: self.ensure_one()
@@ -172,9 +174,9 @@ class PaymentTransaction(models.Model):
         """
 
         self.ensure_one()
-        
-        refund_tx = super()._send_refund_request(amount_to_refund=amount_to_refund)
-        if self.provider_code != 'hitpay':
+
+        refund_tx = super()._send_refund_request(amount_to_refund=amount_to_refund, create_refund_transaction=create_refund_transaction)
+        if self.provider != 'hitpay':
             return refund_tx
 
         # Make the refund request to Hitpay
@@ -188,7 +190,7 @@ class PaymentTransaction(models.Model):
             'amount': amount_to_refund,
         }
         
-        response_content = refund_tx.provider_id._hitpay_make_request(
+        response_content = refund_tx.acquirer_id._hitpay_make_request(
             '/refund', payload=payload
         )
 
@@ -202,15 +204,14 @@ class PaymentTransaction(models.Model):
         self.hitpay_refund_createdat = response_content.get('created_at')
         self.hitpay_refund_amount = response_content.get('amount_refunded')
         self.hitpay_refund_currency = response_content.get('currency')
-
-        self.provider_reference = self.hitpay_refund_id
+        self.acquirer_reference = self.hitpay_refund_id
 
         message = "Refund successful. Refund Reference Id: "+self.hitpay_refund_id+", "
         message += "Payment Id: "+self.hitpay_payment_id+", "
         message += "Amount Refunded: "+self.hitpay_refund_amount+", "
         message += "Payment Method: "+response_content.get('payment_method')+", "
         message += "Created At: "+ self.hitpay_refund_createdat
-
+        
         self._set_done()
         self.env.ref('payment.cron_post_process_payment_tx')._trigger()
 

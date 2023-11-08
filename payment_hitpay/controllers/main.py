@@ -48,13 +48,13 @@ class HitpayController(http.Controller):
         # Handle the notification data.
         try:
             # Check the integrity of the notification data.
-            tx_sudo = request.env['payment.transaction'].sudo()._get_tx_from_notification_data(
+            tx_sudo = request.env['payment.transaction'].sudo()._get_tx_from_feedback_data(
                 'hitpay', data
             )
 
             self._verify_notification_signature(data, tx_sudo)
 
-            tx_sudo._handle_notification_data('hitpay', data)
+            tx_sudo._handle_feedback_data('hitpay', data)
 
         except ValidationError:  # Acknowledge the notification to avoid getting spammed.
             _logger.exception("Unable to handle the Hitpay  notification data; skipping to acknowledge")
@@ -77,7 +77,7 @@ class HitpayController(http.Controller):
             raise Forbidden()
 
         # Compare the received signature with the expected signature computed from the data.
-        expected_signature = tx_sudo.provider_id._hitpay_calculate_signature(
+        expected_signature = tx_sudo.acquirer_id._hitpay_calculate_signature(
             notification_data
         )
         if not hmac.compare_digest(received_signature, expected_signature):

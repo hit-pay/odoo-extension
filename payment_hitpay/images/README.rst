@@ -28,7 +28,7 @@ Then, youcan choose  one of these instructions:
 .. image:: images/2-Click-Update-App-List.png
 
 In your Odoo administrator interface, browse to "Applications" tab, delete "Applications" filter from
-search field and search for "hitpay" keyword. Click "Install" (or "Upgrade") button of the "HitPay Payment Gateway Provider" module.
+search field and search for "hitpay" keyword. Click "Install" (or "Upgrade") button of the "HitPay Payment Gateway Acquirer" module.
 
 .. image:: images/3-Locate-HitPay-App-Click-Activate-Button-To-Install-App.png
 
@@ -37,7 +37,7 @@ Configuration
 
 * Go to "Website Admin" tab
 .. image:: images/4-Website-Menu-Selection.png
-* In "Configuration" section, expand "eCommerce" menu than click on "Payment Providers" entry
+* In "Configuration" section, expand "eCommerce" menu than click on "Payment Acquirers" entry
 .. image:: images/5-Navigate-To-Payment-Providers.png
 * Select HitPay Payment Gateway module
 .. image:: images/6-Select-HitPay-Payment-Gateway.png
@@ -60,7 +60,7 @@ Payment Confirmation
 
 Sales Order
 ===========
-Navigate to eCommerce Orders => Orders
+Navigate to Orders => Orders
 
 .. image:: images/11-Sales-Order.png
 
@@ -72,7 +72,7 @@ Navigate to Configuration => eCommerce => Payment Transactions
 
 Refunds
 ===========================
-* In the payment transaction, click the payment link eg: PBNK1/2023/00004
+* In the payment transaction, click the payment link eg: BNK1/2023/00004
 * You see the below screen and click the 'Refund' button and enter the amount to refund.
 .. image:: images/14-Refund-Option.png
 .. image:: images/15-Refund-Form.png

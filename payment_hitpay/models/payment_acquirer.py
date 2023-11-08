@@ -17,10 +17,10 @@ from odoo.exceptions import ValidationError
 _logger = logging.getLogger(__name__)
 
 
-class Paymentprovider(models.Model):
-    _inherit = 'payment.provider'
+class PaymentAcquirer(models.Model):
+    _inherit = 'payment.acquirer'
 
-    code = fields.Selection(
+    provider = fields.Selection(
         selection_add=[('hitpay', "HitPay Payment Gateway")], ondelete={'hitpay': 'set default'}
     )
 
@@ -42,9 +42,15 @@ class Paymentprovider(models.Model):
     def _compute_feature_support_fields(self):
         """ Override of `payment` to enable additional features. """
         super()._compute_feature_support_fields()
-        self.filtered(lambda p: p.code == 'hitpay').update({
+        self.filtered(lambda p: p.provider == 'hitpay').update({
             'support_refund': 'partial',
         })    
+        
+    def _get_default_payment_method_id(self):
+        self.ensure_one()
+        if self.provider != 'hitpay':
+            return super()._get_default_payment_method_id()
+        return self.env.ref('payment_hitpay.payment_method_hitpay').id
     
     def _hitpay_make_request(self, endpoint, payload=None, method='POST'):
         """ Make a request to HitPay API at the specified endpoint.
