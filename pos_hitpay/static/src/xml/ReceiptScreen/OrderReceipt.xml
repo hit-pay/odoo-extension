@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="HitpayDetails" owl="1">
+        <div t-if="line.hitpay_paymentId">
+            <span class="pos-receipt-left-align">Payment ID</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_paymentId"/></span>
+        </div>
+        <div t-if="line.hitpay_paymentRequestId">
+            <span class="pos-receipt-left-align">Payment Request ID</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_paymentRequestId"/></span>
+        </div>
+        <div t-if="line.hitpay_paymentStatus">
+            <span class="pos-receipt-left-align">Payment Status</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_paymentStatus"/></span>
+        </div>
+        <div t-if="line.hitpay_paymentAmount">
+            <span class="pos-receipt-left-align">Payment Amount</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_paymentAmount"/></span>
+        </div>
+        <div t-if="line.hitpay_paymentCurrency">
+            <span class="pos-receipt-left-align">Payment Currency</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_paymentCurrency"/></span>
+        </div>
+     </t>
+
+    <t t-name="OrderReceipt" t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('before-footer')]" position="after">
+            <t t-foreach="receipt.paymentlines" t-as="line" t-key="line.cid">
+                <t t-if="line.hitpay_paymentId">
+                    <div style="width:100%;border-bottom:1px dotted;"/>
+                    <div style="text-align:center;">Hitpay</div>
+                    <t t-call="HitpayDetails"/>
+                    <div style="width:100%;border-bottom:1px dotted;"/>
+                </t>
+            </t>
+        </xpath>
+    </t>
+</templates>
