@@ -67,6 +67,7 @@ class Paymentprovider(models.Model):
             'X-Requested-With': 'XMLHttpRequest',
             'X-BUSINESS-API-KEY': self.hitpay_api_key,
         }
+		
         try:
             if method == 'GET':
                 response = requests.get(url, params=payload, headers=headers, timeout=10)

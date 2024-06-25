@@ -43,6 +43,7 @@ class HitpayController(http.Controller):
         :return: An empty string to acknowledge the notification.
         :rtype: str
         """
+
         _logger.info("Webhook received from Hitpay with data:\n%s", pprint.pformat(data))
 
         # Handle the notification data.
