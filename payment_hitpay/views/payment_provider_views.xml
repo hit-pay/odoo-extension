@@ -7,9 +7,9 @@
         <field name="inherit_id" ref="payment.payment_provider_form"/>
         <field name="arch" type="xml">
             <group name="provider_credentials" position="inside">
-                <group attrs="{'invisible': [('code', '!=', 'hitpay')]}">
-                    <field name="hitpay_api_key" string="API Key" attrs="{'required':[ ('code', '=', 'hitpay'), ('state', '!=', 'disabled')]}"/>
-                    <field name="hitpay_api_salt" string="Salt" attrs="{'required':[ ('code', '=', 'hitpay'), ('state', '!=', 'disabled')]}" password="True"/>
+                <group invisible="code != 'hitpay'">
+                    <field name="hitpay_api_key" string="API Key" required="code == 'hitpay' and state != 'disabled'" />
+                    <field name="hitpay_api_salt" string="Salt" required="code == 'hitpay' and state != 'disabled'" password="True"/>
                 </group>
             </group>
         </field>
@@ -21,15 +21,15 @@
         <field name="inherit_id" ref="payment.payment_transaction_form" />
         <field name="arch" type="xml">
             <field name="provider_reference" position="after">
-                <field name="hitpay_payment_request_id" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_payment_id" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_payment_amount" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_payment_currency" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_payment_status" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_refund_id" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_refund_amount" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_refund_currency" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
-                <field name="hitpay_refund_createdat" attrs="{'invisible': [('provider_code','not in',('hitpay'))]}" />
+                <field name="hitpay_payment_request_id" invisible="provider_code != 'hitpay'" />
+                <field name="hitpay_payment_id" invisible="provider_code != 'hitpay'"  />
+                <field name="hitpay_payment_amount" invisible="provider_code != 'hitpay'"  />
+                <field name="hitpay_payment_currency" invisible="provider_code != 'hitpay'"  />
+                <field name="hitpay_payment_status" invisible="provider_code != 'hitpay'"  />
+                <field name="hitpay_refund_id" invisible="provider_code != 'hitpay'"  />
+                <field name="hitpay_refund_amount" invisible="provider_code != 'hitpay'"  />
+                <field name="hitpay_refund_currency" invisible="provider_code != 'hitpay'"  />
+                <field name="hitpay_refund_createdat" invisible="provider_code != 'hitpay'"  />
             </field>
         </field>
     </record>

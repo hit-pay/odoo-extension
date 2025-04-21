@@ -43,6 +43,9 @@ Configuration
 .. image:: images/6-Select-HitPay-Payment-Gateway.png
 * You can now enter your HitPay Payment Gateway credentials
 .. image:: images/7-Configure-Credentials.png
+* Select Configuration Tab, click -> Enable Payment Methods, Click the Hitpay Payment Gateway(And also make it active if it is not)
+* Enter the payment method title in the Providers tab
+* Enable the sub payment options in the Brands tab and in the configuration tab, you can restrict countries and currencies to the Hitpay Payment Gateway
 .. image:: images/8-Configure-Optional-Title-And-Icons.png
 
 IMPORTANT
@@ -79,6 +82,6 @@ Refunds
 
 Change Log
 ==========
-1.0.
+17.0.0.1
 --------------------
 * Initial release.
