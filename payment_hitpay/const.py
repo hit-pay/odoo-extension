@@ -3,3 +3,7 @@ TRANSACTION_STATUS_MAPPING = {
     'done': ('completed'),
     'canceled': ('canceled', 'null', 'failed'),
 }
+
+DEFAULT_PAYMENT_METHOD_CODES = {
+    'hitpay',
+}

@@ -13,6 +13,8 @@ from werkzeug import urls
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+from odoo.addons.payment_hitpay import const
+
 
 _logger = logging.getLogger(__name__)
 
@@ -107,6 +109,7 @@ class Paymentprovider(models.Model):
         :return: The calculated signature.
         :rtype: str
         """
+        
         signing_string = ''
         for k in sorted(data.keys()):
             if k != 'hmac':
@@ -119,4 +122,11 @@ class Paymentprovider(models.Model):
         ).hexdigest()
 
         return signature
+
+    def _get_default_payment_method_codes(self):
+        """ Override of `payment` to return the default payment method codes. """
+        default_codes = super()._get_default_payment_method_codes()
+        if self.code != 'hitpay':
+            return default_codes
+        return const.DEFAULT_PAYMENT_METHOD_CODES
    
