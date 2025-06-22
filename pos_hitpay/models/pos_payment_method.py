@@ -67,6 +67,17 @@ class PosPaymentMethod(models.Model):
             data['hitpay_invoice_id']
         )
         return { 'response': invoice }
+    
+    @api.model
+    def delete_payment(self, second, data):
+        payment_method = self.get_current_hitpay_payment_method()
+
+        invoice = self.hitpayPosClient.deletePaymentRequest(
+            self.hitpayPosClient,
+            payment_method,
+            data['hitpay_invoice_id']
+        )
+        return { 'response': invoice }
 
     @api.model
     def request_payment(self, second, data):

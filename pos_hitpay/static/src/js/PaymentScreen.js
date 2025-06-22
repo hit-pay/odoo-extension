@@ -13,15 +13,17 @@ patch(PaymentScreen.prototype, {
                     paymentLine.get_payment_status() !== "pending"
             );
             if (pendingPaymentLine) {
-                //pendingPaymentLine.set_payment_status('force_done');
-
                 const paymentTerminal = pendingPaymentLine.payment_method_id.payment_terminal;
                 pendingPaymentLine.set_payment_status('waiting');
+                console.log('PaymentScreen');
                 paymentTerminal.start_get_status_polling().then(isPaymentSuccessful => {
+                     console.log('isPaymentSuccessful or not');
                     if (isPaymentSuccessful) {
+                        console.log('isPaymentSuccessful done');
                         pendingPaymentLine.set_payment_status('done');
                         pendingPaymentLine.can_be_reversed = paymentTerminal.supports_reversals;
                     } else {
+                        console.log('isPaymentSuccessful retry');
                         pendingPaymentLine.set_payment_status('retry');
                     }
                 });

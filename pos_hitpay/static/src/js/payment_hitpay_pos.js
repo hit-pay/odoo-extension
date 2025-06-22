@@ -17,6 +17,11 @@ export class PaymentPosHitpay extends PaymentInterface {
         return this._hitpay_pay(cid)
     }
 
+    send_payment_cancel(order, cid) {
+        super.send_payment_cancel(order, cid);
+        return this._hitpay_cancel();
+    }
+
     _reset_state () {
       this.was_cancelled = false
       this.last_diagnosis_service_id = false
@@ -24,31 +29,67 @@ export class PaymentPosHitpay extends PaymentInterface {
       clearTimeout(this.polling)
     }
 
-    _hitpay_pay (cid) {
+    async _hitpay_pay (cid) {
+
       const self = this
 
       const order = this.pos.get_order()
+
       const paymentLine = this.get_selected_payment()
 
-      if (paymentLine && paymentLine.amount <= 0) {
-        this._show_error(
-          _t('Cannot process transaction with zero or negative amount.')
-        )
-        return Promise.resolve()
-      }
-      console.log(order);
-      const orderId = order.name.replace(" ", "").replaceAll("-", "").toUpperCase();
-      const receipt_data = {
-          amount: paymentLine.amount,
-          currency: this.pos.currency.name,
-          customer_name:this.pos.company.name,
-          customer_email:this.pos.company.email,
-          referenceId:orderId
-      };
+      if (order._isRefundOrder()) {
+        paymentLine.set_payment_status('waiting');
+        const refunded_orderline = order.lines[0].refunded_orderline_id;
 
-      return this._call_hitpay(receipt_data).then(function (data) {
-        return self._hitpay_handle_response(data)
-      })
+        const dataInput = {
+          'order_line_id':refunded_orderline.id,
+          'amount': paymentLine.amount,
+        };
+
+        return await self.env.services.orm.silent
+          .call("pos.order", 'refund_payment', [dataInput])
+          .catch(function(err) {
+            self._show_error(_t(err.message))
+          })
+          .then(function (result) {
+            if (result.status == 'success') {
+              if (paymentLine) {
+                paymentLine['hitpay_refundId'] = result.response.hitpay_refundId;
+                paymentLine['hitpay_refundAmount'] = result.response.hitpay_refundAmount;
+                paymentLine['hitpay_refundCurrency'] = result.response.hitpay_refundCurrency;
+                
+                paymentLine.set_payment_status('done')
+              }
+              return Promise.resolve(true);
+            } else {
+              self._show_error(
+                _t(result.message)
+              )
+              return Promise.resolve()
+            }
+        });
+
+      } else {
+          if (paymentLine && paymentLine.amount <= 0) {
+            this._show_error(
+              _t('Cannot process transaction with zero or negative amount.')
+            )
+            return Promise.resolve()
+          }
+
+          const orderId = order.name.replace(" ", "").replaceAll("-", "").toUpperCase();
+          const receipt_data = {
+              amount: paymentLine.amount,
+              currency: this.pos.currency.name,
+              customer_name:this.pos.company.name,
+              customer_email:this.pos.company.email,
+              referenceId:orderId
+          };
+
+          return this._call_hitpay(receipt_data).then(function (data) {
+            return self._hitpay_handle_response(data)
+          })
+      }
     }
 
     get_selected_payment () {
@@ -63,6 +104,41 @@ export class PaymentPosHitpay extends PaymentInterface {
       return this.env.services.orm.silent
             .call("pos.payment.method", 'request_payment', [[this.payment_method_id.id], dataInput])
             .catch(this._handle_odoo_connection_failure.bind(this));
+    }
+
+    _hitpay_cancel() {
+        const self = this
+        const paymentLine = this.get_selected_payment()
+
+        const dataInput = {
+          hitpay_invoice_id: paymentLine.getHitpayInvoiceId()
+        };
+
+        return this.env.services.orm.silent
+            .call("pos.payment.method", 'delete_payment', [[this.payment_method_id.id], dataInput])
+            .catch(this._handle_odoo_connection_failure_delete.bind(this))
+            .then(function (result) {
+                const invoice = result.response
+
+                if (invoice.success) {
+                } else {
+                  self._show_error(invoice.message)
+                  return Promise.resolve(false);
+                }
+
+                return Promise.resolve(true);
+            })
+    }
+
+    _handle_odoo_connection_failure_delete (data) {
+      // handle timeout
+      const paymentLine = this.get_selected_payment()
+      if (paymentLine) {
+        paymentLine.set_payment_status(paymentStatus.RETRY)
+      }
+
+      this._show_error(_t('Could not connect to the Odoo server, please check your internet connection and try again.'))
+      return Promise.reject(data) // prevent subsequent onFullFilled's from being called
     }
 
     _handle_odoo_connection_failure (data) {
@@ -197,7 +273,6 @@ export class PaymentPosHitpay extends PaymentInterface {
             reject()
           }
       })
-
     }
 
     _hitpay_get_sale_id () {
@@ -241,15 +316,6 @@ export class PaymentPosHitpay extends PaymentInterface {
         }
         reject()
       }
-    }
-
-    send_payment_cancel(order, cid) {
-        super.send_payment_cancel(order, cid);
-        const paymentLine = this.get_selected_payment()
-        if (paymentLine) {
-          paymentLine.set_payment_status(paymentStatus.RETRY)
-          return true;
-        }
     }
 
     _show_error (error_msg, title) {

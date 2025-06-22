@@ -23,10 +23,18 @@ class PosOrder(models.Model):
             'hitpay_paymentRequestId': ui_paymentline.get('hitpay_paymentRequestId'),
             'hitpay_paymentAmount': ui_paymentline.get('hitpay_paymentAmount'),
             'hitpay_paymentCurrency': ui_paymentline.get('hitpay_paymentCurrency'),
-            'hitpay_paymentReference': ui_paymentline.get('hitpay_paymentReference')
+            'hitpay_paymentReference': ui_paymentline.get('hitpay_paymentReference'),
         })
 
         return fields
+    
+    def get_hitpay_payment_id(self, order_line_id):
+        posOrderLine = self.env["pos.order.line"].search([('id', '=', order_line_id)], limit=1)
+        order_id = posOrderLine.order_id.id
+        posPayment = self.env["pos.payment"].search([('pos_order_id', '=', order_id)], limit=1)
+        hitpay_payment_id = posPayment.hitpay_paymentId
+
+        return hitpay_payment_id
     
     @api.model
     def add_payment(self, data):
@@ -38,7 +46,9 @@ class PosOrder(models.Model):
         if payment_method.id == data['payment_method_id']:
             if data['amount'] < 0 :
                 pos_reference = self.pos_reference
-                pos_reference = pos_reference.replace("Order ", "")
+                pos_reference = pos_reference.replace(" ", "")
+                pos_reference = pos_reference.replace("-", "")
+                pos_reference = pos_reference.upper()
             
                 posPayment = self.env["pos.payment"].search([('hitpay_paymentReference', '=', pos_reference)], limit=1)
                 hitpay_payment_id = posPayment.hitpay_paymentId
@@ -72,3 +82,52 @@ class PosOrder(models.Model):
       
         self.env['pos.payment'].create(data)
         self.amount_paid = sum(self.payment_ids.mapped('amount'))
+
+    @api.model
+    def refund_payment(self, data):
+        payment_method = self.posPaymentMethod.get_current_hitpay_payment_method(self.posPaymentMethod)
+        order_line_id = data['order_line_id']
+
+        hitpay_payment_id = self.get_hitpay_payment_id(order_line_id)
+
+        if hitpay_payment_id != '':
+            payload = {
+                'payment_id': hitpay_payment_id,
+                'amount': data['amount'] * -1,
+            }
+
+            logging.getLogger(__name__).info(
+                "Refund payload for %s ", pprint.pformat(payload),
+            )
+
+            result = self.hitpayPosClient.refundPayment(
+                self.hitpayPosClient,
+                payment_method,
+                payload
+            )
+
+            logging.getLogger(__name__).info(
+                "Response for %s ", pprint.pformat(result),
+            )
+
+            if result.get('message') :
+                return {'status':'error', 'message': result.get('message') }
+            
+            response = {
+                'hitpay_refundId': result.get('id'),
+                'hitpay_refundAmount': result.get('amount_refunded'),
+                'hitpay_refundCurrency': result.get('currency')
+            }
+
+            dataUpdate = {
+                'hitpay_refundId': result.get('id'),
+                'hitpay_refundAmount': result.get('amount_refunded'),
+                'hitpay_refundCurrency': result.get('currency')
+            }
+      
+            self.env['pos.payment'].update(dataUpdate)
+
+            return {'status':'success', 'response': response }
+        
+        return {'status':'error', 'message': 'Hitpay Payment Id not found for this order, try to refund from Backend or manually' }
+

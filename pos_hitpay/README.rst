@@ -77,8 +77,30 @@ Payment Transaction Details
 .. image:: images/13-Payment-Transaction-Details.png
 
 
+Refunds
+===========================
+* To do the refund in the Odoo 18, you have to open the register where you ordered the products.
+* Click Action button and select the Refund option and select the order to refund. If more than quantity ordered, you need to select the quantity. 
+* Click the Refund button and click the Payment button, and select the 'Hitpay' payment method to refund if payment was succesful before.
+* You can see the below screens for how to make refund.
+.. image:: images/16-Frontend-Checkout-Refund-Selection.png
+.. image:: images/16-2-Frontend-Checkout-Refund-Select-Order.png
+.. image:: images/16-Frontend-Checkout-Refund-Successful.png
+.. image:: images/16-Backend-Refund-Payment-Navigation.png
+.. image:: images/16-Backend-Refund-Payment-Select-Payment.png
+.. image:: images/16-Backend-Refund-Payment-Details.png
+
+
 Change Log
 ==========
-1.0.0.
+
+18.0.0.1
 --------------------
 * Initial release.
+
+18.0.0.2
+--------------------
+* Fixed a bug when deleting/canceling the payment line.
+* Added a feature to delete the payment request via hitpay gateway API when deleting/canceling the payment line.
+* Backend Refund feature is upgraded.
+* New Refund feature is added in the frontend pos checkout.

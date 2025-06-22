@@ -20,6 +20,11 @@ patch(PosPayment.prototype, {
         data.hitpay_paymentAmount = this.hitpay_paymentAmount;
         data.hitpay_paymentCurrency = this.hitpay_paymentCurrency;
         data.hitpay_paymentId = this.hitpay_paymentId;
+
+        data.hitpay_refundId = this.hitpay_refundId;
+        data.hitpay_refundAmount = this.hitpay_refundAmount;
+        data.hitpay_refundCurrency = this.hitpay_refundCurrency;
+
         return data;
       },
       setHitpayInvoiceId (id) {

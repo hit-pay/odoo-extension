@@ -145,6 +145,26 @@ class HitpayPosClient():
         response = json.loads(res.text)
         #response['status'] = 'completed'
         return response
+    
+    def deletePaymentRequest(self, payment_method, payment_request_id):
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-BUSINESS-API-KEY': payment_method.pos_hitpay_api_key,
+        }
+        
+        endpoint = '/payment-requests/'
+        
+        url = self.getApiURL(self, payment_method)+endpoint+payment_request_id
+  
+        try:
+            res = requests.delete(url, headers=headers, timeout=10)
+        except requests.exceptions.RequestException as err:
+            return self.errorHandler.handleError('deletePaymentRequest', err)
+
+        response = json.loads(res.text)
+        
+        return response
 
     def refundPayment(self, payment_method, payload):
         headers = {
