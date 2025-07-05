@@ -104,3 +104,9 @@ Change Log
 * Added a feature to delete the payment request via hitpay gateway API when deleting/canceling the payment line.
 * Backend Refund feature is upgraded.
 * New Refund feature is added in the frontend pos checkout.
+
+18.0.0.3
+--------------------
+* Jul 05, 2025
+* Upgraded to compatible with multi-terminal/register usage feature.
+

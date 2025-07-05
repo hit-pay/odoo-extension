@@ -41,7 +41,7 @@ class PosOrder(models.Model):
         """Create a new payment for the order"""
         self.ensure_one()
 
-        payment_method = self.posPaymentMethod.get_current_hitpay_payment_method(self.posPaymentMethod)
+        payment_method = self.posPaymentMethod.get_hitpay_payment_method_by_id(self, data['payment_method_id'])
 
         if payment_method.id == data['payment_method_id']:
             if data['amount'] < 0 :
@@ -85,7 +85,7 @@ class PosOrder(models.Model):
 
     @api.model
     def refund_payment(self, data):
-        payment_method = self.posPaymentMethod.get_current_hitpay_payment_method(self.posPaymentMethod)
+        payment_method = self.posPaymentMethod.get_hitpay_payment_method_by_id(self,data['payment_method_id'])
         order_line_id = data['order_line_id']
 
         hitpay_payment_id = self.get_hitpay_payment_id(order_line_id)
@@ -130,4 +130,4 @@ class PosOrder(models.Model):
             return {'status':'success', 'response': response }
         
         return {'status':'error', 'message': 'Hitpay Payment Id not found for this order, try to refund from Backend or manually' }
-
+    

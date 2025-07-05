@@ -61,7 +61,7 @@ class HitpayPosClient():
             'X-Requested-With': 'XMLHttpRequest',
             'X-BUSINESS-API-KEY': payment_method.pos_hitpay_api_key,
         }
-        
+
         endpoint = '/payment-requests'
         
         url = self.getApiURL(self, payment_method)+endpoint
@@ -152,10 +152,15 @@ class HitpayPosClient():
             'X-Requested-With': 'XMLHttpRequest',
             'X-BUSINESS-API-KEY': payment_method.pos_hitpay_api_key,
         }
-        
+       
         endpoint = '/payment-requests/'
         
         url = self.getApiURL(self, payment_method)+endpoint+payment_request_id
+
+        _logger.info(
+            "DeletePaymentRequest URL for %s :",
+            pprint.pformat(url),
+        )
   
         try:
             res = requests.delete(url, headers=headers, timeout=10)
@@ -163,6 +168,11 @@ class HitpayPosClient():
             return self.errorHandler.handleError('deletePaymentRequest', err)
 
         response = json.loads(res.text)
+
+        _logger.info(
+            "DeletePaymentRequest Response for %s :\n%s",
+            endpoint, pprint.pformat(response),
+        )
         
         return response
 

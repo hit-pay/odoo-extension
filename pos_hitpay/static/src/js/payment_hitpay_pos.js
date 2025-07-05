@@ -44,6 +44,7 @@ export class PaymentPosHitpay extends PaymentInterface {
         const dataInput = {
           'order_line_id':refunded_orderline.id,
           'amount': paymentLine.amount,
+          'payment_method_id': this.payment_method_id.id
         };
 
         return await self.env.services.orm.silent
@@ -83,7 +84,8 @@ export class PaymentPosHitpay extends PaymentInterface {
               currency: this.pos.currency.name,
               customer_name:this.pos.company.name,
               customer_email:this.pos.company.email,
-              referenceId:orderId
+              referenceId:orderId,
+              payment_method_id: this.payment_method_id.id
           };
 
           return this._call_hitpay(receipt_data).then(function (data) {
@@ -110,8 +112,15 @@ export class PaymentPosHitpay extends PaymentInterface {
         const self = this
         const paymentLine = this.get_selected_payment()
 
+        const order = this.pos.get_order()
+
+        if (order._isRefundOrder()) {
+          return Promise.resolve(true);
+        }
+
         const dataInput = {
-          hitpay_invoice_id: paymentLine.getHitpayInvoiceId()
+          hitpay_invoice_id: paymentLine.getHitpayInvoiceId(),
+          payment_method_id: this.payment_method_id.id
         };
 
         return this.env.services.orm.silent
@@ -256,7 +265,8 @@ export class PaymentPosHitpay extends PaymentInterface {
         transaction_id: order.uid,
         terminal_id: this.payment_method_id.pos_hitpay_terminal_identifier,
         requested_amount: paymentLine.amount,
-        hitpay_invoice_id: paymentLine.getHitpayInvoiceId()
+        hitpay_invoice_id: paymentLine.getHitpayInvoiceId(),
+        payment_method_id: this.payment_method_id.id
       };
 
       return this.env.services.orm.silent
