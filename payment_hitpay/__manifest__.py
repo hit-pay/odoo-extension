@@ -1,6 +1,6 @@
 {
     'name': "HitPay Payment Gateway",
-    'version': '18.0.0.1',
+    'version': '18.0.0.2',
     'category': 'Accounting/Payment Providers',
     'sequence': 350,
     'summary': "HitPay Payment Gateway Plugin allows merchants to accept PayNow QR, Cards, Apple Pay, Google Pay, WeChatPay, AliPay and GrabPay Payments.",
@@ -12,6 +12,7 @@
         'views/payment_provider_views.xml',
 		'data/payment_method_data.xml',
         'data/payment_provider_data.xml',
+        'views/account_payment_views.xml',
     ],
     'images': ['images/main_screenshot.png'],
     'application': True,

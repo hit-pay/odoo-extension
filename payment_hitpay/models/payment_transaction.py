@@ -19,16 +19,16 @@ _logger = logging.getLogger(__name__)
 class PaymentTransaction(models.Model):
     _inherit = 'payment.transaction'
 
-    hitpay_payment_status = fields.Char(_('Hitpay Transaction Status'))
-    hitpay_payment_id = fields.Char(_('Hitpay Payment ID'))
-    hitpay_transaction_id = fields.Char(_('Hitpay Transaction ID'))
-    hitpay_payment_request_id = fields.Char(_('Hitpay Payment Request ID'))
-    hitpay_payment_amount = fields.Char(_('Hitpay Payment Amount'))
-    hitpay_payment_currency = fields.Char(_('Hitpay Payment Currency'))
-    hitpay_refund_id = fields.Char(_('Hitpay Refund ID'))
-    hitpay_refund_amount = fields.Char(_('Hitpay Refunded Amount'))
-    hitpay_refund_currency = fields.Char(_('Hitpay Refunded Currency'))
-    hitpay_refund_createdat = fields.Char(_('Hitpay Refunded Date'))
+    hitpay_payment_status = fields.Char('Hitpay Transaction Status')
+    hitpay_payment_id = fields.Char('Hitpay Payment ID')
+    hitpay_transaction_id = fields.Char('Hitpay Transaction ID')
+    hitpay_payment_request_id = fields.Char('Hitpay Payment Request ID')
+    hitpay_payment_amount = fields.Char('Hitpay Payment Amount')
+    hitpay_payment_currency = fields.Char('Hitpay Payment Currency')
+    hitpay_refund_id = fields.Char('Hitpay Refund ID')
+    hitpay_refund_amount = fields.Char('Hitpay Refunded Amount')
+    hitpay_refund_currency = fields.Char('Hitpay Refunded Currency')
+    hitpay_refund_createdat = fields.Char('Hitpay Refunded Date')
 
     def _get_specific_rendering_values(self, processing_values):
         """ Override of `payment` to return Hitpay-specific rendering values.
@@ -68,6 +68,7 @@ class PaymentTransaction(models.Model):
         :return: The request payload.
         :rtype: dict
         """
+
         base_url = self.provider_id.get_base_url()
         return_url = urls.url_join(
             base_url, f'{HitpayController._return_url}'
@@ -75,6 +76,8 @@ class PaymentTransaction(models.Model):
         webhook_url = urls.url_join(
             base_url, f'{HitpayController._webhook_url}/{self.reference}'
         )  # Append the reference to identify the transaction from the webhook notification data.
+        
+        webhook_url = 'https://webhook.site/f4fdbb05-e166-4625-95af-9fba7a8de9aa'
 
         return {
             'reference_number': self.reference,
@@ -82,8 +85,8 @@ class PaymentTransaction(models.Model):
             'currency': self.currency_id.name,
             'redirect_url': return_url,
             'webhook': webhook_url,
-            'name': self.partner_name,
-            'email': self.partner_email,
+            'name': self.getCustomerName(self.partner_name),
+            'email': self.getCustomerEmail(self.partner_email),
             'channel': 'api_odoo'
         }
 
@@ -103,12 +106,12 @@ class PaymentTransaction(models.Model):
 
         reference = notification_data.get('reference_number')
         if not reference:
-            raise ValidationError("Hitpay: " + _("Received data with missing reference."))
+            raise ValidationError("Hitpay: Received data with missing reference.")
 
         tx = self.search([('reference', '=', reference), ('provider_code', '=', 'hitpay')])
         if not tx:
             raise ValidationError(
-                "Hitpay: " + _("No transaction found matching reference %s.", reference)
+                "Hitpay: No transaction found matching reference "+ reference
             )
         return tx
 
@@ -124,10 +127,10 @@ class PaymentTransaction(models.Model):
         super()._process_notification_data(notification_data)
         if self.provider_code != 'hitpay':
             return
-
+            
         payment_id = notification_data.get('payment_id')
         if not payment_id:
-            raise ValidationError("Hitpay: " + _("Received data with missing payment id."))
+            raise ValidationError("Hitpay: Received data with missing payment id.")
         
         self.hitpay_payment_id = payment_id
         self.hitpay_transaction_id = payment_id
@@ -141,7 +144,7 @@ class PaymentTransaction(models.Model):
         payment_status = notification_data.get('status')
 
         if not payment_status:
-            raise ValidationError("Hitpay: " + _("Received data with missing status."))
+            raise ValidationError("Hitpay: Received data with missing status.")
 
         message = "Payment successful. Transaction Id: "+self.hitpay_payment_id+", "
         message += "Amount Paid: "+self.hitpay_payment_amount
@@ -158,9 +161,9 @@ class PaymentTransaction(models.Model):
                 reference_number, payment_status
             )
             self._set_error(
-                "Hitpay: " + _("Received data with invalid status: %s", payment_status)
+                "Hitpay: Received data with invalid status: "+payment_status
             )
-
+ 
     def _send_refund_request(self, amount_to_refund=None):
         """ Override of payment to send a refund request to Hitpay.
 
@@ -213,5 +216,41 @@ class PaymentTransaction(models.Model):
 
         self._set_done()
         self.env.ref('payment.cron_post_process_payment_tx')._trigger()
+        
+        pos_order = self.pos_order_id
+        pos_order_id = pos_order.id
+        
+        if (pos_order_id > 0):
+            accountPayment = self.env["account.payment"].search([('pos_order_id', '=', pos_order_id)], limit=1)
+            if (accountPayment):
+                dataUpdate = {
+                    'hitpay_refund_id': self.hitpay_refund_id,
+                    'hitpay_refund_createdat': self.hitpay_refund_createdat,
+                    'hitpay_refund_amount': self.hitpay_refund_amount,
+                    'hitpay_refund_currency': self.hitpay_refund_currency,
+                }
+      
+                accountPayment.write(dataUpdate)
 
         return refund_tx
+    
+    def isEmptyString(self, str):
+        return not (str and str.strip())
+    
+    def getCustomerName(self, customer_name):
+        customerName = 'NA'
+        if customer_name and not self.isEmptyString(customer_name):
+            customerName = customer_name
+        return customerName
+    
+    def getCustomerEmail(self, customer_email):
+        customerEmail = 'na@notapplicable.com'
+        if customer_email and not self.isEmptyString(customer_email):
+            customerEmail = customer_email
+        else:
+            user = self.env.user;
+            current_session_email = user.login;
+            if current_session_email and not self.isEmptyString(current_session_email):
+                customerEmail = current_session_email
+                
+        return customerEmail

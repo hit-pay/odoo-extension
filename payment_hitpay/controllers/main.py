@@ -32,13 +32,10 @@ class HitpayController(http.Controller):
         else:
             return request.redirect('/shop/payment')
 
-    @http.route(
-        f'{_webhook_url}/<reference>', type='http', auth='public', methods=['POST'], csrf=False
-    )
-    def hitpay_webhook(self, reference, **data):
+    @http.route(_webhook_url, type='http', auth='public', methods=['POST'], csrf=False)
+    def hitpay_webhook(self, **data):
         """ Process the notification data sent by Hitpay to the webhook.
 
-        :param str reference: The transaction reference embedded in the webhook URL.
         :param dict _kwargs: The extra query parameters.
         :return: An empty string to acknowledge the notification.
         :rtype: str

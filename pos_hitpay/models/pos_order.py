@@ -35,13 +35,20 @@ class PosOrder(models.Model):
         hitpay_payment_id = posPayment.hitpay_paymentId
 
         return hitpay_payment_id
+        
+    def get_hitpay_payment_method_by_id(self, payment_method_id):
+        return self.env['pos.payment.method'].sudo().search(
+            [
+                ('id', '=', payment_method_id),
+                ('use_payment_terminal', '=', 'pos_hitpay')
+            ], limit=1)
     
     @api.model
     def add_payment(self, data):
         """Create a new payment for the order"""
         self.ensure_one()
 
-        payment_method = self.posPaymentMethod.get_hitpay_payment_method_by_id(self, data['payment_method_id'])
+        payment_method = self.get_hitpay_payment_method_by_id(data['payment_method_id'])
 
         if payment_method.id == data['payment_method_id']:
             if data['amount'] < 0 :
@@ -85,7 +92,7 @@ class PosOrder(models.Model):
 
     @api.model
     def refund_payment(self, data):
-        payment_method = self.posPaymentMethod.get_hitpay_payment_method_by_id(self,data['payment_method_id'])
+        payment_method = self.get_hitpay_payment_method_by_id(data['payment_method_id'])
         order_line_id = data['order_line_id']
 
         hitpay_payment_id = self.get_hitpay_payment_id(order_line_id)

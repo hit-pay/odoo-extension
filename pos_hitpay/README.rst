@@ -94,9 +94,15 @@ Refunds
 Change Log
 ==========
 
-18.0.0.1
+18.0.0.4
 --------------------
-* Initial release.
+* Nov 13, 2025
+* Fixed conflict: Hitpay Payment Gateway provider for POS online payment method when both addons(payment_hitpay and pos_hitpay) are installed.
+
+18.0.0.3
+--------------------
+* Jul 05, 2025
+* Upgraded to compatible with multi-terminal/register usage feature.
 
 18.0.0.2
 --------------------
@@ -105,8 +111,7 @@ Change Log
 * Backend Refund feature is upgraded.
 * New Refund feature is added in the frontend pos checkout.
 
-18.0.0.3
+18.0.0.1
 --------------------
-* Jul 05, 2025
-* Upgraded to compatible with multi-terminal/register usage feature.
+* Initial release.
 

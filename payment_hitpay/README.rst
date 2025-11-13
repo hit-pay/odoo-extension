@@ -1,7 +1,7 @@
 .. image:: images/logo.png
 
 ===================================================
-HitPay Payment Gateway for Odoo E-commerce
+HitPay Payment Gateway for Odoo E-commerce and Odoo POS Online Payment Method
 ===================================================
 
 HitPay Payment Gateway for Odoo E-commerce is an open source module that links Odoo based e-commerce websites to HitPay Payment Gateway developed by https://www.hitpayapp.com/
@@ -82,6 +82,13 @@ Refunds
 
 Change Log
 ==========
-17.0.0.1
+
+18.0.0.2
 --------------------
-* Initial release.
+* Nov 13, 2025
+* Upgraded to compatible to POS online payment method as a payment provider
+
+18.0.0.1
+--------------------
+* Apr 21, 2025
+* Initial release

@@ -11,7 +11,7 @@
     'author': "HitPay Payment Solutions Pte Ltd",
     'website': "https://www.hitpayapp.com",
     'category': 'Sales/Point of Sale',
-    'version': '18.0.0.3',
+    'version': '18.0.0.4',
     'depends': ['point_of_sale'],
     'data': [
         'views/pos_payment_method_views.xml',
