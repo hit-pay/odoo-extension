@@ -32,9 +32,7 @@ class HitpayController(http.Controller):
         else:
             return request.redirect('/shop/payment')
 
-    @http.route(
-        f'{_webhook_url}/<reference>', type='http', auth='public', methods=['POST'], csrf=False
-    )
+    @http.route(_webhook_url, type='http', auth='public', methods=['POST'], csrf=False)
     def hitpay_webhook(self, **data):
         """ Process the notification data sent by Hitpay to the webhook.
 

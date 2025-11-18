@@ -74,8 +74,8 @@ class PaymentTransaction(models.Model):
             base_url, f'{HitpayController._return_url}'
         )
         webhook_url = urls.url_join(
-            base_url, f'{HitpayController._webhook_url}/{self.reference}'
-        )  # Append the reference to identify the transaction from the webhook notification data.
+            base_url, f'{HitpayController._webhook_url}'
+        )
 
         return {
             'reference_number': self.reference,
