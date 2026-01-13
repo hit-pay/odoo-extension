@@ -19,6 +19,68 @@ This repository uses **version branches** to support multiple Odoo versions:
 - **Active**: Receives new features and bug fixes
 - **Maintenance**: Receives critical bug fixes and security patches only
 
+## Internal Developer Workflow
+
+For HitPay team members making changes to a specific version (e.g., updating 17.0):
+
+### 1. Checkout the Version Branch
+
+```bash
+git fetch origin
+git checkout 17.0
+git pull origin 17.0
+```
+
+### 2. Create a Feature Branch (Recommended)
+
+```bash
+git checkout -b fix/payment-validation-17
+```
+
+### 3. Make Changes and Test
+
+- Edit the code
+- Test on an Odoo 17.0 instance
+- Update version in `__manifest__.py` if needed
+
+### 4. Commit Changes
+
+```bash
+git add .
+git commit -m "Fix payment validation for edge cases"
+```
+
+### 5. Push and Create Pull Request
+
+```bash
+git push origin fix/payment-validation-17
+```
+
+Then create a PR on GitHub targeting the version branch (e.g., `fix/payment-validation-17` → `17.0`)
+
+### 6. Tag the Release (for significant changes)
+
+```bash
+git checkout 17.0
+git tag -a v17.0.0.2 -m "Release 17.0.0.2 - Fix payment validation"
+git push origin v17.0.0.2
+```
+
+### Quick Reference
+
+| Task | Command |
+|------|---------|
+| Switch to version | `git checkout 17.0` |
+| Update local branch | `git pull origin 17.0` |
+| Push changes | `git push origin 17.0` |
+| Create release tag | `git tag -a v17.0.0.2 -m "message"` |
+
+### Important Notes
+
+- **Never merge version branches into each other** - 15.0, 16.0, 17.0, 18.0 are independent
+- **Update `__manifest__.py` version** when making releases
+- **Update CHANGELOG.md** in each branch for significant changes
+
 ## How to Contribute
 
 ### Reporting Issues
