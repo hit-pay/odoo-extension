@@ -23,6 +23,7 @@ class PosPaymentMethod(models.Model):
     pos_hitpay_test_mode = fields.Boolean(string="Test Mode", help='Run transactions in the test environment.')
     pos_hitpay_terminal_identifier = fields.Char(string="Terminal ID", help='[Terminal model]-[Serial number], for example: P400Plus-123456789', copy=False)
     pos_hitpay_latest_response = fields.Char(help='Technical field used to buffer the latest asynchronous notification from HitPay.', copy=False, groups='base.group_erp_manager')
+    pos_hitpay_location_id = fields.Char(string="Location ID", help='The active location belongs to business', copy=False)
 
     hitpay_invoice_id = ''
     hitpayPosClient = hitpaypos_client.HitpayPosClient

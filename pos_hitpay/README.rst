@@ -94,6 +94,12 @@ Refunds
 Change Log
 ==========
 
+18.0.0.5
+--------------------
+* Jan 16, 2026
+* Add ability to pass location ID [string<uuid> (Optional)] when creating payment request to indicte the active location belongs to business.
+* Removed drop-in codes since not required for the POS terminal.
+
 18.0.0.4
 --------------------
 * Nov 13, 2025
