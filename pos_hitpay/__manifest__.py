@@ -11,7 +11,7 @@
     'author': "HitPay Payment Solutions Pte Ltd",
     'website': "https://www.hitpayapp.com",
     'category': 'Sales/Point of Sale',
-    'version': '18.0.0.4',
+    'version': '18.0.0.5',
     'depends': ['point_of_sale'],
     'data': [
         'views/pos_payment_method_views.xml',
@@ -25,7 +25,6 @@
             'pos_hitpay/static/src/js/PaymentScreen.js',
             'pos_hitpay/static/src/js/payment_hitpay_pos.js',
             'pos_hitpay/static/src/js/models.js',
-			'https://hit-pay.com/hitpay.js',
             "pos_hitpay/static/src/xml/ReceiptScreen/OrderReceipt.xml",
 		],
     }

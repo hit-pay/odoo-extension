@@ -74,8 +74,6 @@ class HitpayPosClient():
             base_url, f'{PosHitpayController._notification_url}'
         ) 
 
-        #webhook_url = 'https://webhook.site/a26208a3-9f23-464b-b885-0d5f6c65f76d'
-
         method = 'POST'
         
         endpoint = ''
@@ -92,10 +90,15 @@ class HitpayPosClient():
         }
 
         terminal_id = payment_method.pos_hitpay_terminal_identifier
+        
+        location_id = payment_method.pos_hitpay_location_id
 
         if not self.isEmptyString(self, terminal_id):
             payload.update({'payment_methods[]': 'wifi_card_reader'})
             payload.update({'wifi_terminal_id': terminal_id})
+            
+        if not self.isEmptyString(self, location_id):
+            payload.update({'location_id': location_id})
 
         _logger.info(
             "CreatePaymentRequest Payload for %s :",
