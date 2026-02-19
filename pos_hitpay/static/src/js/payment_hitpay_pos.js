@@ -212,41 +212,6 @@ odoo.define('pos_hitpay.payment', function (require) {
             }
             return Promise.resolve()
         } else if (response.id) {
-
-          let posHitpaySelf = self;
-          if (!window.HitPay.inited) {
-            window.HitPay.init(response.url, {
-              domain: response.domain,
-              apiDomain: response.api_domain,
-            },
-            {
-              onClose: function() {
-                const paymentLine = posHitpaySelf.get_selected_payment()
-                if (paymentLine) {
-                    paymentLine.set_payment_status(paymentStatus.RETRY)
-                }
-              },
-              onSuccess: function() {
-                const paymentLine = posHitpaySelf.get_selected_payment()
-                if (paymentLine) {
-                    paymentLine.setHitpayInvoiceId(response.id)
-                    paymentLine.set_payment_status(paymentStatus.WAITING)
-                }
-              },
-              onError: function(error) {
-                const paymentLine = posHitpaySelf.get_selected_payment()
-                if (paymentLine) {
-                    paymentLine.set_payment_status(paymentStatus.RETRY)
-                }
-                posHitpaySelf._show_error(_t('Payment Error. ')+error)
-              },
-            });
-          }
-
-          window.HitPay.toggle({
-              paymentRequest: response.id,          
-          });
-                            
           if (paymentLine) {
             paymentLine.setHitpayInvoiceId(response.id)
             paymentLine.set_payment_status(paymentStatus.WAITING)

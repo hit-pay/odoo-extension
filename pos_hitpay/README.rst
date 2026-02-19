@@ -86,6 +86,13 @@ Refunds
 
 Change Log
 ==========
+
+16.0.0.2
+--------------------
+* Feb 19, 2026
+* Removed drop-in codes since not required for the POS terminal.
+
 1.0.0.
 --------------------
+* Mar 23, 2024
 * Initial release.
