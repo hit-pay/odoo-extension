@@ -1,203 +1,168 @@
-/* eslint-disable no-undef */
-/* eslint-disable camelcase */
-odoo.define('pos_hitpay.payment', function (require) {
-  'use strict'
+import { _t } from "@web/core/l10n/translation";
+import { PaymentInterface } from "@point_of_sale/app/utils/payment/payment_interface";
+import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 
-  const core = require('web.core')
-  const rpc = require('web.rpc')
-  const PaymentInterface = require('point_of_sale.PaymentInterface')
-  const { Gui } = require('point_of_sale.Gui')
 
-  const paymentStatus = {
+const paymentStatus = {
     PENDING: 'pending',
     RETRY: 'retry',
     WAITING: 'waiting',
     FORCE_DONE: 'force_done'
-  }
+}
 
-  // For string translations
-  const _t = core._t
+export class PaymentPosHitpay extends PaymentInterface {
+    sendPaymentRequest(cid) {
+        super.sendPaymentRequest(cid);
+        this._reset_state()
 
-  const PaymentPosHitpay = PaymentInterface.extend({
-    send_payment_request: function () {
-      this._super.apply(this, arguments)
-      this._reset_state()
+        return this._hitpay_pay(cid)
+    }
 
-      return this._hitpay_pay()
-    },
+    sendPaymentCancel(order, cid) {
+        super.sendPaymentCancel(order, cid);
+        return this._hitpay_cancel();
+    }
 
-    get_selected_payment: function () {
-      const paymentLine = this.pos.get_order().selected_paymentline
-      if (paymentLine && paymentLine.payment_method.use_payment_terminal === 'pos_hitpay') {
-        return paymentLine
-      }
-      return false
-    },
-
-    send_payment_cancel: function () {
-        this._super.apply(this, arguments);
-        const paymentLine = this.get_selected_payment()
-        if (paymentLine) {
-          paymentLine.set_payment_status(paymentStatus.RETRY)
-          return true;
-        }
-    },
-
-    close: function () {
-      this._super.apply(this, arguments)
-    },
-
-    // private methods
-    _reset_state: function () {
+    _reset_state () {
       this.was_cancelled = false
       this.last_diagnosis_service_id = false
       this.remaining_polls = 2
       clearTimeout(this.polling)
-    },
+    }
 
-    
-    _hitpay_get_sale_id: function () {
-      const config = this.pos.config
-      return _.str.sprintf('%s (ID: %s)', config.display_name, config.id)
-    },
+    async _hitpay_pay (cid) {
 
-    _handle_odoo_connection_failure: function (data) {
+      const self = this
+
+      const order = this.pos.getOrder()
+
+      const paymentLine = this.get_selected_payment()
+
+      if (order.isRefund) {
+        paymentLine.setPaymentStatus('waiting');
+        const refunded_orderline = order.lines[0].refunded_orderline_id;
+
+        const dataInput = {
+          'order_line_id':refunded_orderline.id,
+          'amount': paymentLine.amount,
+          'payment_method_id': this.payment_method_id.id
+        };
+
+        return await self.env.services.orm.silent
+          .call("pos.order", 'refund_payment', [dataInput])
+          .catch(function(err) {
+            self._show_error(_t(err.message))
+          })
+          .then(function (result) {
+            if (result.status == 'success') {
+              if (paymentLine) {
+                paymentLine['hitpay_refundId'] = result.response.hitpay_refundId;
+                paymentLine['hitpay_refundAmount'] = result.response.hitpay_refundAmount;
+                paymentLine['hitpay_refundCurrency'] = result.response.hitpay_refundCurrency;
+                
+                paymentLine.setPaymentStatus('done')
+              }
+              return Promise.resolve(true);
+            } else {
+              self._show_error(
+                _t(result.message)
+              )
+              return Promise.resolve()
+            }
+        });
+
+      } else {
+          if (paymentLine && paymentLine.amount <= 0) {
+            this._show_error(
+              _t('Cannot process transaction with zero or negative amount.')
+            )
+            return Promise.resolve()
+          }
+
+          const orderId = order.name.replace(" ", "").replaceAll("-", "").toUpperCase();
+          const receipt_data = {
+              amount: paymentLine.amount,
+              currency: this.pos.currency.name,
+              customer_name:this.pos.company.name,
+              customer_email:this.pos.company.email,
+              referenceId:orderId,
+              payment_method_id: this.payment_method_id.id
+          };
+
+          return this._call_hitpay(receipt_data).then(function (data) {
+            return self._hitpay_handle_response(data)
+          })
+      }
+    }
+
+    get_selected_payment () {
+      const paymentLine = this.pos.getOrder().getSelectedPaymentline();
+      if (paymentLine && paymentLine.payment_method_id.use_payment_terminal === 'pos_hitpay') {
+        return paymentLine
+      }
+      return false
+    }
+
+    _call_hitpay(dataInput) {
+      return this.env.services.orm.silent
+            .call("pos.payment.method", 'request_payment', [[this.payment_method_id.id], dataInput])
+            .catch(this._handle_odoo_connection_failure.bind(this));
+    }
+
+    _hitpay_cancel() {
+        const self = this
+        const paymentLine = this.get_selected_payment()
+
+        const order = this.pos.getOrder()
+
+        if (order.isRefund) {
+          return Promise.resolve(true);
+        }
+
+        const dataInput = {
+          hitpay_invoice_id: paymentLine.getHitpayInvoiceId(),
+          payment_method_id: this.payment_method_id.id
+        };
+
+        return this.env.services.orm.silent
+            .call("pos.payment.method", 'delete_payment', [[this.payment_method_id.id], dataInput])
+            .catch(this._handle_odoo_connection_failure_delete.bind(this))
+            .then(function (result) {
+                const invoice = result.response
+
+                if (invoice.success) {
+                } else {
+                  self._show_error(invoice.message)
+                  return Promise.resolve(false);
+                }
+
+                return Promise.resolve(true);
+            })
+    }
+
+    _handle_odoo_connection_failure_delete (data) {
       // handle timeout
       const paymentLine = this.get_selected_payment()
       if (paymentLine) {
-        paymentLine.set_payment_status(paymentStatus.RETRY)
+        paymentLine.setPaymentStatus(paymentStatus.RETRY)
       }
 
       this._show_error(_t('Could not connect to the Odoo server, please check your internet connection and try again.'))
       return Promise.reject(data) // prevent subsequent onFullFilled's from being called
-    },
+    }
 
-    _hitpay_pay: function () {
-      const self = this
-
-      const order = this.pos.get_order()
+    _handle_odoo_connection_failure (data) {
+      // handle timeout
       const paymentLine = this.get_selected_payment()
-      if (paymentLine && paymentLine.amount <= 0) {
-        this._show_error(
-          _t('Cannot process transaction with zero or negative amount.')
-        )
-        return Promise.resolve()
+      if (paymentLine) {
+        paymentLine.setPaymentStatus(paymentStatus.RETRY)
       }
 
-      const receipt_data = order.export_for_printing()
-      receipt_data.amount = paymentLine.amount
-      receipt_data.terminal_id = paymentLine.payment_method.pos_hitpay_terminal_identifier
+      this._show_error(_t('Could not connect to the Odoo server, please check your internet connection and try again.'))
+      return Promise.reject(data) // prevent subsequent onFullFilled's from being called
+    }
 
-      return this._call_hitpay(receipt_data).then(function (data) {
-        return self._hitpay_handle_response(data)
-      })
-    },
-
-    // Create the payment request
-    _call_hitpay: function (data) {
-      return rpc.query({
-        model: 'pos.payment.method',
-        method: 'request_payment',
-        args: [data]
-      }, {
-        // When a payment terminal is disconnected it takes Hitpay
-        // a while to return an error (~6s). So wait 10 seconds
-        // before concluding Odoo is unreachable.
-        timeout: 10000,
-        shadow: true
-      }).catch(
-        this._handle_odoo_connection_failure.bind(this)
-      )
-    },
-
-    _poll_for_response: function (resolve, reject) {
-      const self = this
-      if (this.was_cancelled) {
-        resolve(false)
-        return Promise.resolve()
-      }
-
-      const order = this.pos.get_order()
-      const paymentLine = this.get_selected_payment()
-
-      // If the payment line dont have hitpay invoice then stop polling retry.
-      if (!paymentLine || paymentLine.getHitpayInvoiceId() == null) {
-        resolve(false)
-        return Promise.resolve()
-      }
-
-      const data = {
-        sale_id: this._hitpay_get_sale_id(),
-        transaction_id: order.uid,
-        terminal_id: this.payment_method.pos_hitpay_terminal_identifier,
-        requested_amount: paymentLine.amount,
-        hitpay_invoice_id: paymentLine.getHitpayInvoiceId()
-      }
-
-      return rpc.query({
-        model: 'pos.payment.method',
-        method: 'get_latest_pos_hitpay_status',
-        args: [data]
-      }, {
-        timeout: 5000,
-        shadow: true
-      }).catch(function (data) {
-        reject()
-        return self._handle_odoo_connection_failure(data)
-      }).then(function (result) {
-
-        self.remaining_polls = 2
-        const invoice = result.response
-
-        if (invoice.id === paymentLine.getHitpayInvoiceId()) {
-          self._update_payment_status(invoice, resolve, reject)
-        } else {
-          paymentLine.set_payment_status(paymentStatus.RETRY)
-          reject()
-        }
-      })
-    },
-
-    _update_payment_status: function (invoice, resolve, reject) {
-
-      if (invoice.status === 'completed') {
-
-        $('#hitpay-payment-status').text('Paid')
-        $('#invoice-link > a').text('Paid')
-        
-        const paymentLine = this.get_selected_payment()
-        if (paymentLine) {
-
-          paymentLine['hitpay_paymentRequestId'] = invoice.id;
-          paymentLine['hitpay_paymentReference'] = invoice.reference_number;
-          paymentLine['hitpay_paymentStatus'] = invoice.status;
-          paymentLine['hitpay_paymentAmount'] = invoice.amount;
-          paymentLine['hitpay_paymentCurrency'] = invoice.currency;
-          paymentLine['hitpay_paymentId'] = invoice.payments[0].id;
-
-          paymentLine.set_payment_status('done')
-  
-        }
-        resolve(true)
-      } else if (invoice.status === 'failed') {
-        $('#hitpay-payment-status').text('Failed')
-         const paymentLine = this.get_selected_payment()
-        if (paymentLine) {
-          paymentLine.set_payment_status(paymentStatus.RETRY)
-        }
-        reject()
-      } else if (invoice.status === 'canceled') {
-        $('#hitpay-payment-status').text('Canceled')
-        const paymentLine = this.get_selected_payment()
-        if (paymentLine) {
-          paymentLine.set_payment_status(paymentStatus.RETRY)
-        }
-        reject()
-      }
-    },
-
-    _hitpay_handle_response: function (response) {
-
+    _hitpay_handle_response (response) {
         const self = this
         const paymentLine = this.get_selected_payment()
 
@@ -208,53 +173,19 @@ odoo.define('pos_hitpay.payment', function (require) {
               errorMessage
             )
             if (paymentLine) {
-              paymentLine.set_payment_status(paymentStatus.FORCE_DONE)
+              paymentLine.setPaymentStatus(paymentStatus.FORCE_DONE)
             }
             return Promise.resolve()
         } else if (response.id) {
-
-          let posHitpaySelf = self;
-          if (!window.HitPay.inited) {
-            window.HitPay.init(response.url, {
-              domain: response.domain,
-              apiDomain: response.api_domain,
-            },
-            {
-              onClose: function() {
-                const paymentLine = posHitpaySelf.get_selected_payment()
-                if (paymentLine) {
-                    paymentLine.set_payment_status(paymentStatus.RETRY)
-                }
-              },
-              onSuccess: function() {
-                const paymentLine = posHitpaySelf.get_selected_payment()
-                if (paymentLine) {
-                    paymentLine.setHitpayInvoiceId(response.id)
-                    paymentLine.set_payment_status(paymentStatus.WAITING)
-                }
-              },
-              onError: function(error) {
-                const paymentLine = posHitpaySelf.get_selected_payment()
-                if (paymentLine) {
-                    paymentLine.set_payment_status(paymentStatus.RETRY)
-                }
-                posHitpaySelf._show_error(_t('Payment Error. ')+error)
-              },
-            });
-          }
-
-          window.HitPay.toggle({
-              paymentRequest: response.id,          
-          });
                             
           if (paymentLine) {
             paymentLine.setHitpayInvoiceId(response.id)
-            paymentLine.set_payment_status(paymentStatus.WAITING)
+            paymentLine.setPaymentStatus(paymentStatus.WAITING)
           }
 
           return this.start_get_status_polling()
       }
-    },
+    }
 
     start_get_status_polling () {
       const self = this
@@ -273,19 +204,96 @@ odoo.define('pos_hitpay.payment', function (require) {
 
       Promise.resolve()
       return res
-    },
+    }
 
-    _show_error: function (title, msg) {
-      if (!title) {
-        title = _t('Hitpay Error')
+    _poll_for_response (resolve, reject) {
+      const self = this
+      if (this.was_cancelled) {
+        resolve(false)
+        return Promise.resolve()
       }
-      Gui.showPopup('ErrorPopup', {
-        title,
-        body: msg
+
+      const order = this.pos.getOrder()
+      const paymentLine = this.get_selected_payment()
+
+      // If the payment line dont have hitpay invoice then stop polling retry.
+      if (!paymentLine|| paymentLine.getHitpayInvoiceId() == null) {
+        resolve(false)
+        return Promise.resolve()
+      }
+
+      const dataInput = {
+        sale_id: this._hitpay_get_sale_id(),
+        transaction_id: order.uid,
+        terminal_id: this.payment_method_id.pos_hitpay_terminal_identifier,
+        requested_amount: paymentLine.amount,
+        hitpay_invoice_id: paymentLine.getHitpayInvoiceId(),
+        payment_method_id: this.payment_method_id.id
+      };
+
+      return this.env.services.orm.silent
+        .call("pos.payment.method", 'get_latest_pos_hitpay_status', [[this.payment_method_id.id], dataInput])
+        .catch(this._handle_odoo_connection_failure.bind(this))
+        .then(function (result) {
+          self.remaining_polls = 2
+          const invoice = result.response
+
+          if (invoice.id === paymentLine.getHitpayInvoiceId()) {
+            self._update_payment_status(invoice, resolve, reject)
+          } else {
+            paymentLine.setPaymentStatus(paymentStatus.RETRY)
+            reject()
+          }
       })
     }
-    
-  })
 
-  return PaymentPosHitpay
-})
+    _hitpay_get_sale_id () {
+      const config = this.pos.config
+      return _t('%s (ID: %s)', config.display_name, config.id)
+    }
+
+    _update_payment_status (invoice, resolve, reject) {
+
+      if (invoice.status === 'completed') {
+
+        //$('#hitpay-payment-status').text('Paid')
+        //$('#invoice-link > a').text('Paid')
+        
+        const paymentLine = this.get_selected_payment()
+        if (paymentLine) {
+
+          paymentLine['hitpay_paymentRequestId'] = invoice.id;
+          paymentLine['hitpay_paymentReference'] = invoice.reference_number;
+          paymentLine['hitpay_paymentStatus'] = invoice.status;
+          paymentLine['hitpay_paymentAmount'] = invoice.amount;
+          paymentLine['hitpay_paymentCurrency'] = invoice.currency;
+          paymentLine['hitpay_paymentId'] = invoice.payments[0].id;
+
+          paymentLine.setPaymentStatus('done')
+  
+        }
+        resolve(true)
+      } else if (invoice.status === 'failed') {
+        //$('#hitpay-payment-status').text('Failed')
+         const paymentLine = this.get_selected_payment()
+        if (paymentLine) {
+          paymentLine.setPaymentStatus(paymentStatus.RETRY)
+        }
+        reject()
+      } else if (invoice.status === 'canceled') {
+        //$('#hitpay-payment-status').text('Canceled')
+        const paymentLine = this.get_selected_payment()
+        if (paymentLine) {
+          paymentLine.setPaymentStatus(paymentStatus.RETRY)
+        }
+        reject()
+      }
+    }
+
+    _show_error (error_msg, title) {
+        this.env.services.dialog.add(AlertDialog, {
+            title: title || _t("HitPay Pos Error"),
+            body: error_msg,
+        });
+    }
+}

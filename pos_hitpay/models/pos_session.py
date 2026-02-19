@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _
-from odoo.osv.expression import AND, OR
-import logging
-
-_logger = logging.getLogger(__name__)
-
 
 class POSSession(models.Model):
     _name = 'pos.session'

@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import json
 import logging
+import pprint
 
 from odoo import fields, models, api, _
 from odoo.exceptions import ValidationError
@@ -31,6 +32,13 @@ class PosPaymentMethod(models.Model):
             [
                 ('use_payment_terminal', '=', 'pos_hitpay')
             ], limit=1)
+    
+    def get_hitpay_payment_method_by_id(self, payment_method_id):
+        return request.env['pos.payment.method'].sudo().search(
+            [
+                ('id', '=', payment_method_id),
+                ('use_payment_terminal', '=', 'pos_hitpay')
+            ], limit=1)
 
     @api.constrains('pos_hitpay_terminal_identifier')
     def _check_pos_hitpay_terminal_identifier(self):
@@ -49,7 +57,7 @@ class PosPaymentMethod(models.Model):
         return super(PosPaymentMethod, self)._is_write_forbidden(fields - whitelisted_fields)
 
     @api.model
-    def get_latest_pos_hitpay_status(self, data):
+    def get_latest_pos_hitpay_status(self, second, data):
         '''See the description of proxy_pos_hitpay_request as to why this is an
         @api.model function.
         '''
@@ -59,17 +67,29 @@ class PosPaymentMethod(models.Model):
         # notify the user if the terminal is no longer reachable due
         # to connectivity issues.
 
-        payment_method = self.get_current_hitpay_payment_method()
+        payment_method = self.get_hitpay_payment_method_by_id(data['payment_method_id'])
 
         invoice = self.hitpayPosClient.getPaymentStatus(
             self.hitpayPosClient,
             payment_method,
-            data["hitpay_invoice_id"]
+            data['hitpay_invoice_id']
+        )
+        return { 'response': invoice }
+    
+    @api.model
+    def delete_payment(self, second, data):
+
+        payment_method = self.get_hitpay_payment_method_by_id(data['payment_method_id'])
+
+        invoice = self.hitpayPosClient.deletePaymentRequest(
+            self.hitpayPosClient,
+            payment_method,
+            data['hitpay_invoice_id']
         )
         return { 'response': invoice }
 
     @api.model
-    def request_payment(self, data):
+    def request_payment(self, second, data):
         '''Necessary because Hitpay's endpoints don't have CORS enabled. This is an
         @api.model function to avoid concurrent update errors. Hitpay's
         async endpoint can still take well over a second to complete a
@@ -78,11 +98,11 @@ class PosPaymentMethod(models.Model):
         avoid concurrent update errors when Hitpay calls us back on
         /hitpay/notification which will need to write on
         pos.payment.method.
-        '''
 
+        '''
         invoice = self.hitpayPosClient.createPaymentRequest(
             self.hitpayPosClient,
-            self.get_current_hitpay_payment_method(),
+            self.get_hitpay_payment_method_by_id(data['payment_method_id']),
             json.loads(json.dumps(data))
         )
         return invoice

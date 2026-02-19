@@ -41,7 +41,7 @@ Configuration
 .. image:: images/5-Navigate-To-Payment-Providers.png
 * Click New button to add the HitPay POS as the payment method
 .. image:: images/6-Select-HitPay-Payment-Gateway.png
-* Enter title for the Payment option, Payment Journal as Bank and must select the Use a Payment Terminal as 'HitPay Payment Gateway', once selected this terminal, enter the HitPay Payment Gateway credentials
+* Enter title for the Payment option, Payment Journal as Bank and must select Integration as the Terminal and Integrate with as 'HitPay Payment Gateway' and enter credentials for HitPay Payment Gateway Payment Terminal
 .. image:: images/7-Configure-Credentials.png
 * And navigate to Settings page
 .. image:: images/7-Navigate-To-POS-Settings-1.png
@@ -58,7 +58,6 @@ Checkout
 .. image:: images/8-Start-Session.png
 .. image:: images/9-Frontend-Opening-Session.png
 .. image:: images/9-Frontend-Checkout-Page-Choose-Hitpay.png
-.. image:: images/9-Frontend-Checkout-Page-Choose-Hitpay-Drop-In_UI.png
 
 Payment Confirmation
 --------------------
@@ -72,20 +71,29 @@ Navigate to POS Orders => Orders
 
 Payment Transaction Details
 ===========================
-Click to view an order and go Payment tab and click the payment link
+* Navigate to the Point of Sale and click on the Orders => Payments
+* Select the HitPay Payment Terminal Gateway tab view the list of payments made via this terminal and click to view the detailed payment details and hitpay transaction details.
 
 .. image:: images/13-Payment-Transaction-Details.png
 
+
 Refunds
 ===========================
-* In the order view page, click the Return Products button and then click the Payment Button and in the Popup, make sure you select the Hitpay Payment Gateway POS as refund Payment method.
-* You see the below screen and click the 'Make Payment' button and enter the amount to refund. (Amount should be in the negative)
-.. image:: images/14-Refund-Option.png
-.. image:: images/15-Refund-Form.png
-.. image:: images/15-Refund-Transaction.png
+* To do the refund in the Odoo 18, you have to open the register where you ordered the products.
+* Click Action button and select the Refund option and select the order to refund. If more than quantity ordered, you need to select the quantity. 
+* Click the Refund button and click the Payment button, and select the 'Hitpay' payment method to refund if payment was succesful before.
+* You can see the below screens for how to make refund.
+.. image:: images/16-Frontend-Checkout-Refund-Selection.png
+.. image:: images/16-2-Frontend-Checkout-Refund-Select-Order.png
+.. image:: images/16-Frontend-Checkout-Refund-Successful.png
+.. image:: images/16-Backend-Refund-Payment-Details.png
+
 
 Change Log
 ==========
-1.0.0.
+
+19.0.0.1
 --------------------
+* Feb 19, 2026
 * Initial release.
+

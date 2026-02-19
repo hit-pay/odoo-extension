@@ -11,8 +11,8 @@
     'author': "HitPay Payment Solutions Pte Ltd",
     'website': "https://www.hitpayapp.com",
     'category': 'Sales/Point of Sale',
-    'version': '1.0.0',
-    'depends': ['base', 'point_of_sale'],
+    'version': '19.0.0.1',
+    'depends': ['point_of_sale'],
     'data': [
         'views/pos_payment_method_views.xml',
         'views/pos_payment.xml',
@@ -21,13 +21,10 @@
     'application': True,
     'installable': True,
     'assets': {
-        'web.assets_backend': [
+		'point_of_sale._assets_pos': [
             'pos_hitpay/static/src/js/PaymentScreen.js',
             'pos_hitpay/static/src/js/payment_hitpay_pos.js',
             'pos_hitpay/static/src/js/models.js',
-        ],
-		'point_of_sale.assets': [
-			'https://hit-pay.com/hitpay.js',
             "pos_hitpay/static/src/xml/ReceiptScreen/OrderReceipt.xml",
 		],
     }
