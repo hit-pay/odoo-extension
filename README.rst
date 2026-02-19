@@ -10,13 +10,15 @@ Supported Odoo Versions
 +-------------+------------------+------------------+
 | Odoo Version| payment_hitpay   | pos_hitpay       |
 +=============+==================+==================+
+| 19.0        | NO               | Yes              |
++-------------+------------------+------------------+
 | 18.0        | Yes              | Yes              |
 +-------------+------------------+------------------+
-| 17.0        | Yes              | No               |
+| 17.0        | Yes              | Yes               |
 +-------------+------------------+------------------+
 | 16.0        | Yes              | Yes              |
 +-------------+------------------+------------------+
-| 15.0        | Yes              | Yes              |
+| 15.0        | Yes              | No              |
 +-------------+------------------+------------------+
 
 Installation
@@ -28,7 +30,7 @@ Installation
 
       git clone https://github.com/hit-pay/odoo-extension.git
       cd odoo-extension
-      git checkout 18.0  # Replace with your Odoo version (15.0, 16.0, 17.0, 18.0)
+      git checkout 19.0  # Replace with your Odoo version (15.0, 16.0, 17.0, 18.0, 19.0)
 
 2. Copy the module(s) to your Odoo addons directory:
 
@@ -78,7 +80,7 @@ Integrates HitPay with Odoo POS for in-store payments.
 Requirements
 ============
 
-- Odoo 15.0, 16.0, 17.0, or 18.0
+- Odoo 15.0, 16.0, 17.0, 18.0 or 19.0
 - HitPay merchant account (`Sign up here <https://www.hitpayapp.com>`_)
 - API credentials from HitPay Dashboard
 

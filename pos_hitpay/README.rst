@@ -79,7 +79,7 @@ Payment Transaction Details
 
 Refunds
 ===========================
-* To do the refund in the Odoo 18, you have to open the register where you ordered the products.
+* To do the refund in the Odoo 19, you have to open the register where you ordered the products.
 * Click Action button and select the Refund option and select the order to refund. If more than quantity ordered, you need to select the quantity. 
 * Click the Refund button and click the Payment button, and select the 'Hitpay' payment method to refund if payment was succesful before.
 * You can see the below screens for how to make refund.

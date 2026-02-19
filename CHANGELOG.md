@@ -2,6 +2,13 @@
 
 All notable changes to the HitPay Odoo Payment Gateway modules.
 
+## Odoo 19.0
+
+### pos_hitpay v19.0.0.1 - Feb 19, 2026
+- Initial release for Odoo 19.0
+
+---
+
 ## Odoo 18.0
 
 ### [v18.0.0.4] - 2024
@@ -27,6 +34,9 @@ All notable changes to the HitPay Odoo Payment Gateway modules.
 
 ## Odoo 17.0
 
+### pos_hitpay v17.0.0.1 - Feb 18, 2026
+- Initial release for Odoo 17.0
+
 ### [v17.0.0.1] - 2024
 - Initial release for Odoo 17.0
 - payment_hitpay module only (pos_hitpay not available for this version)
@@ -35,6 +45,10 @@ All notable changes to the HitPay Odoo Payment Gateway modules.
 ---
 
 ## Odoo 16.0
+
+
+### payment_hitpay v16.0.0.2 - Feb 19, 2026
+- Removed drop-in codes since not required for the POS terminal.
 
 ### [v16.0.1.0] - 2023
 - Initial release for Odoo 16.0

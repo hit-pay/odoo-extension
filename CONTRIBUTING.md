@@ -8,11 +8,12 @@ This repository uses **version branches** to support multiple Odoo versions:
 
 | Branch | Odoo Version | Status |
 |--------|--------------|--------|
+| `19.0` | Odoo 19.0 | Active |
 | `18.0` | Odoo 18.0 | Active |
 | `17.0` | Odoo 17.0 | Active |
 | `16.0` | Odoo 16.0 | Maintenance |
 | `15.0` | Odoo 15.0 | Maintenance |
-| `main` | Latest (18.0) | Active |
+| `main` | Latest (19.0) | Active |
 
 ### Branch Definitions
 
@@ -77,7 +78,7 @@ git push origin v17.0.0.2
 
 ### Important Notes
 
-- **Never merge version branches into each other** - 15.0, 16.0, 17.0, 18.0 are independent
+- **Never merge version branches into each other** - 15.0, 16.0, 17.0, 18.0, 19.0 are independent
 - **Update `__manifest__.py` version** when making releases
 - **Update CHANGELOG.md** in each branch for significant changes
 
@@ -86,7 +87,7 @@ git push origin v17.0.0.2
 ### Reporting Issues
 
 1. Check if the issue already exists in [GitHub Issues](https://github.com/hit-pay/odoo-extension/issues)
-2. Specify your Odoo version in the issue title (e.g., `[18.0] Payment fails on checkout`)
+2. Specify your Odoo version in the issue title (e.g., `[19.0] Payment fails on checkout`)
 3. Include steps to reproduce, expected behavior, and actual behavior
 
 ### Submitting Changes
@@ -97,7 +98,7 @@ git push origin v17.0.0.2
    ```bash
    git clone https://github.com/YOUR_USERNAME/odoo-extension.git
    cd odoo-extension
-   git checkout 18.0  # Use the branch matching your Odoo version
+   git checkout 19.0  # Use the branch matching your Odoo version
    ```
 
 3. **Create a feature branch** from the version branch:
@@ -121,7 +122,7 @@ git push origin v17.0.0.2
 
 ### PR Guidelines
 
-- Target the correct version branch (e.g., `18.0`, `17.0`)
+- Target the correct version branch (e.g., `19.0`, `18.0`, `17.0`)
 - Include a clear description of changes
 - Reference any related issues
 - Ensure code follows Odoo coding standards
@@ -144,7 +145,7 @@ If a fix applies to multiple Odoo versions:
 
 ## Code Style
 
-- Follow [Odoo coding guidelines](https://www.odoo.com/documentation/18.0/contributing/development/coding_guidelines.html)
+- Follow [Odoo coding guidelines](https://www.odoo.com/documentation/19.0/contributing/development/coding_guidelines.html)
 - Use meaningful variable and function names
 - Add comments for complex logic
 - Keep methods focused and concise

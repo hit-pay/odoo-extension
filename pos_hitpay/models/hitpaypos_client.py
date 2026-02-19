@@ -90,8 +90,6 @@ class HitpayPosClient():
         }
 
         terminal_id = payment_method.pos_hitpay_terminal_identifier
-        
-        terminal_id = ''
 
         if not self.isEmptyString(self, terminal_id):
             payload.update({'payment_methods[]': 'wifi_card_reader'})
