@@ -33,6 +33,10 @@ class PosPayment(models.Model):
             'hitpay_paymentAmount': payment.hitpay_paymentAmount,
             'hitpay_paymentCurrency': payment.hitpay_paymentCurrency,
             'hitpay_paymentReference': payment.hitpay_paymentReference,
+
+            'hitpay_refundId': payment.hitpay_refundId,
+            'hitpay_refundAmount': payment.hitpay_refundAmount,
+            'hitpay_refundCurrency': payment.hitpay_refundCurrency,
         })
         return data
        

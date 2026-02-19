@@ -43,16 +43,16 @@ class HitpayPosClient():
     def isEmptyString(self, str):
         return not (str and str.strip())
     
-    def getCustomerName(self, data):
+    def getCustomerName(self, customer_name):
         customerName = 'NA'
-        if data and not self.isEmptyString(self, data['name']):
-            customerName = data['name']
+        if customer_name and not self.isEmptyString(self, customer_name):
+            customerName = customer_name
         return customerName
     
-    def getCustomerEmail(self, data):
+    def getCustomerEmail(self, customer_email):
         customerEmail = 'na@notapplicable.com'
-        if data and not self.isEmptyString(self, data['email']):
-            customerEmail = data['email']
+        if customer_email and not self.isEmptyString(self, customer_email):
+            customerEmail = customer_email
         return customerEmail
 
     def createPaymentRequest(self, payment_method, data):
@@ -61,7 +61,7 @@ class HitpayPosClient():
             'X-Requested-With': 'XMLHttpRequest',
             'X-BUSINESS-API-KEY': payment_method.pos_hitpay_api_key,
         }
-        
+
         endpoint = '/payment-requests'
         
         url = self.getApiURL(self, payment_method)+endpoint
@@ -79,13 +79,13 @@ class HitpayPosClient():
         endpoint = ''
 
         payload = {
-            'reference_number': data['name'].split(' ')[1],
+            'reference_number': data['referenceId'],
             'amount': data['amount'],
-            'currency':  data['currency']['name'],
+            'currency':  data['currency'],
             'redirect_url': return_url,
             'webhook': webhook_url,
-            'name': self.getCustomerName(self, data['partner']),
-            'email': self.getCustomerEmail(self, data['partner']),
+            'name': self.getCustomerName(self, data['customer_name']),
+            'email': self.getCustomerEmail(self, data['customer_email']),
             'channel': 'api_odoo'
         }
 
@@ -141,7 +141,37 @@ class HitpayPosClient():
             return self.errorHandler.handleError('getPaymentStatus', err)
 
         response = json.loads(res.text)
+        #response['status'] = 'completed'
+        return response
+    
+    def deletePaymentRequest(self, payment_method, payment_request_id):
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-BUSINESS-API-KEY': payment_method.pos_hitpay_api_key,
+        }
+       
+        endpoint = '/payment-requests/'
+        
+        url = self.getApiURL(self, payment_method)+endpoint+payment_request_id
 
+        _logger.info(
+            "DeletePaymentRequest URL for %s :",
+            pprint.pformat(url),
+        )
+  
+        try:
+            res = requests.delete(url, headers=headers, timeout=10)
+        except requests.exceptions.RequestException as err:
+            return self.errorHandler.handleError('deletePaymentRequest', err)
+
+        response = json.loads(res.text)
+
+        _logger.info(
+            "DeletePaymentRequest Response for %s :\n%s",
+            endpoint, pprint.pformat(response),
+        )
+        
         return response
 
     def refundPayment(self, payment_method, payload):

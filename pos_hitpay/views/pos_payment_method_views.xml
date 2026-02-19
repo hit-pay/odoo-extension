@@ -7,10 +7,21 @@
       <field name="arch" type="xml">
           <xpath expr="//field[@name='use_payment_terminal']" position="after">
                 <field name="pos_hitpay_api_key"
-                        attrs="{'invisible': [('use_payment_terminal', '!=', 'pos_hitpay')], 'required': [('use_payment_terminal', '=', 'pos_hitpay')]}"/>
-				<field name="pos_hitpay_api_salt" attrs="{'invisible': [('use_payment_terminal', '!=', 'pos_hitpay')], 'required': [('use_payment_terminal', '=', 'pos_hitpay')]}"/>
-                <field name="pos_hitpay_test_mode" attrs="{'invisible': [('use_payment_terminal', '!=', 'pos_hitpay')], 'required': [('use_payment_terminal', '=', 'pos_hitpay')]}"/>
-				<field name="pos_hitpay_terminal_identifier" attrs="{'invisible': [('use_payment_terminal', '!=', 'pos_hitpay')], 'required': [('use_payment_terminal', '=', 'pos_hitpay')]}"/>
+                    invisible="use_payment_terminal != 'pos_hitpay'"
+                    required="use_payment_terminal == 'pos_hitpay'"
+                />
+				<field name="pos_hitpay_api_salt" 
+                    invisible="use_payment_terminal != 'pos_hitpay'"
+                    required="use_payment_terminal == 'pos_hitpay'"
+                />
+                <field name="pos_hitpay_test_mode" 
+                    invisible="use_payment_terminal != 'pos_hitpay'"
+                    required="use_payment_terminal == 'pos_hitpay'"
+                />
+				<field name="pos_hitpay_terminal_identifier" 
+                    invisible="use_payment_terminal != 'pos_hitpay'"
+                    required="use_payment_terminal == 'pos_hitpay'"
+                />
           </xpath>
       </field>
     </record>

@@ -21,15 +21,48 @@
             <span class="pos-receipt-left-align">Payment Currency</span>
             <span class="pos-receipt-right-align"><t t-raw="line.hitpay_paymentCurrency"/></span>
         </div>
+        <div t-if="line.hitpay_refundId">
+            <span class="pos-receipt-left-align">Hitpay Refunded ID</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_refundId"/></span>
+        </div>
+        <div t-if="line.hitpay_refundAmount">
+            <span class="pos-receipt-left-align">Hitpay Refunded Amount</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_refundAmount"/></span>
+        </div>
+        <div t-if="line.hitpay_refundCurrency">
+            <span class="pos-receipt-left-align">Hitpay Refunded Currency</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_refundCurrency"/></span>
+        </div>
+    </t>
+
+    <t t-name="HitpayRefundDetails" owl="1">
+         <div t-if="line.hitpay_refundId">
+            <span class="pos-receipt-left-align">Refunded ID</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_refundId"/></span>
+        </div>
+        <div t-if="line.hitpay_refundAmount">
+            <span class="pos-receipt-left-align">Refunded Amount</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_refundAmount"/></span>
+        </div>
+        <div t-if="line.hitpay_refundCurrency">
+            <span class="pos-receipt-left-align">Refunded Currency</span>
+            <span class="pos-receipt-right-align"><t t-raw="line.hitpay_refundCurrency"/></span>
+        </div>
      </t>
 
     <t t-name="OrderReceipt" t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension" owl="1">
         <xpath expr="//div[hasclass('before-footer')]" position="after">
-            <t t-foreach="receipt.paymentlines" t-as="line" t-key="line.cid">
+            <t t-foreach="paymentLines" t-as="line" t-key="line.cid">
                 <t t-if="line.hitpay_paymentId">
                     <div style="width:100%;border-bottom:1px dotted;"/>
                     <div style="text-align:center;">Hitpay</div>
                     <t t-call="HitpayDetails"/>
+                    <div style="width:100%;border-bottom:1px dotted;"/>
+                </t>
+                <t t-if="line.hitpay_refundId">
+                    <div style="width:100%;border-bottom:1px dotted;"/>
+                    <div style="text-align:center;">Hitpay</div>
+                    <t t-call="HitpayRefundDetails"/>
                     <div style="width:100%;border-bottom:1px dotted;"/>
                 </t>
             </t>

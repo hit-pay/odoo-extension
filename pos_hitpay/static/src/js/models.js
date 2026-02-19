@@ -1,31 +1,16 @@
-odoo.define('pos_hitpay.models', function (require) {
-    const { register_payment_method, Payment } = require('point_of_sale.models')
-    const PaymentHitPay = require('pos_hitpay.payment')
-    const Registries = require('point_of_sale.Registries')
+import { register_payment_method } from "@point_of_sale/app/services/pos_store";
+import { PaymentPosHitpay } from "@pos_hitpay/js/payment_hitpay_pos";
+import { PosPayment } from "@point_of_sale/app/models/pos_payment";
+import { patch } from "@web/core/utils/patch";
 
-    register_payment_method('pos_hitpay', PaymentHitPay)
+register_payment_method("pos_hitpay", PaymentPosHitpay);
 
-    const PosHitPayPayment = (Payment) => class PosHitPayPayment extends Payment {
-      constructor (obj, options) {
-        super(...arguments)
+patch(PosPayment.prototype, {
+    setup() {
+        super.setup(...arguments);
         this.hitpayInvoiceId = this.hitpayInvoiceId || null
-      }
-
-      // @override
-      export_as_JSON () {
-        const data = super.export_as_JSON(...arguments)
-        data.hitpay_invoice_id = this.hitpayInvoiceId
-        data.hitpayInvoiceId = this.hitpay_invoice_id;
-        data.hitpay_paymentRequestId = this.hitpay_paymentRequestId;
-        data.hitpay_paymentReference = this.hitpay_paymentReference;
-        data.hitpay_paymentStatus = this.hitpay_paymentStatus;
-        data.hitpay_paymentAmount = this.hitpay_paymentAmount;
-        data.hitpay_paymentCurrency = this.hitpay_paymentCurrency;
-        data.hitpay_paymentId = this.hitpay_paymentId;
-        return data
-      }
-
-      export_for_printing(){
+    },
+    /*export_for_printing(){
         var data = super.export_for_printing(...arguments);
         data.hitpay_invoice_id = this.hitpayInvoiceId
         data.hitpayInvoiceId = this.hitpay_invoice_id;
@@ -35,30 +20,19 @@ odoo.define('pos_hitpay.models', function (require) {
         data.hitpay_paymentAmount = this.hitpay_paymentAmount;
         data.hitpay_paymentCurrency = this.hitpay_paymentCurrency;
         data.hitpay_paymentId = this.hitpay_paymentId;
+
+        data.hitpay_refundId = this.hitpay_refundId;
+        data.hitpay_refundAmount = this.hitpay_refundAmount;
+        data.hitpay_refundCurrency = this.hitpay_refundCurrency;
+
         return data;
-      }
-
-      // @override
-      init_from_JSON (json) {
-        super.init_from_JSON(...arguments)
-        this.hitpayInvoiceId = json.hitpay_invoice_id;
-        this.hitpay_paymentRequestId = json.hitpay_paymentRequestId;
-        this.hitpay_paymentReference = json.hitpay_paymentReference;
-        this.hitpay_paymentStatus = json.hitpay_paymentStatus;
-        this.hitpay_paymentAmount = json.hitpay_paymentAmount;
-        this.hitpay_paymentCurrency = json.hitpay_paymentCurrency;
-        this.hitpay_paymentId = json.hitpay_paymentId;
-
-      }
-
+      },*/
       setHitpayInvoiceId (id) {
         this.hitpayInvoiceId = id
-      }
-
+      },
       getHitpayInvoiceId () {
         return this.hitpayInvoiceId
       }
-    }
-    Registries.Model.extend(Payment, PosHitPayPayment)
-}) 
-    
+});
+
+
