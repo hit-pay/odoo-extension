@@ -7,7 +7,9 @@
         <field name="inherit_id" ref="point_of_sale.view_pos_payment_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='session_id']/.." position="after">
-                <group name="hitpay" attrs="{'invisible': [('hitpay_paymentId', '=', False)]}" string="Hitpay Payment Details">
+                <group name="hitpay" 
+                    invisible="not hitpay_paymentId"
+                     string="Hitpay Payment Details">
                     <group string="Transaction">
                         <field name="hitpay_paymentId"/>
                         <field name="hitpay_paymentRequestId"/>
@@ -16,7 +18,9 @@
                         <field name="hitpay_paymentCurrency"/>
                     </group>
                 </group>
-                <group name="hitpay_refund" attrs="{'invisible': [('hitpay_refundId', '=', False)]}" string="Hitpay Refund Details">
+                <group name="hitpay_refund"
+                    invisible="not hitpay_refundId"
+                  string="Hitpay Refund Details">
                     <group string="Transaction">
                         <field name="hitpay_refundId"/>
                         <field name="hitpay_refundAmount"/>
