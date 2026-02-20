@@ -138,12 +138,12 @@ class PaymentTransaction(models.Model):
             raise ValidationError("Hitpay: Received data with missing status.")
 
         if payment_status in TRANSACTION_STATUS_MAPPING['pending']:
-            message = "Payment is Pending. Transaction Id: "+self.hitpay_payment_id+", "
-            message += "Amount Paid: "+(float)(self.hitpay_payment_amount)
+            message = "Payment is Pending. Transaction Id: "+str(self.hitpay_payment_id)+", "
+            message += "Amount Paid: "+str(self.hitpay_payment_amount)
             self._set_pending(state_message=message)
         elif payment_status in TRANSACTION_STATUS_MAPPING['done']:
-            message = "Payment successful. Transaction Id: "+self.hitpay_payment_id+", "
-            message += "Amount Paid: "+(float)(self.hitpay_payment_amount)
+            message = "Payment successful. Transaction Id: "+str(self.hitpay_payment_id)+", "
+            message += "Amount Paid: "+str(self.hitpay_payment_amount)
             self._set_done(state_message=message)
         elif payment_status in TRANSACTION_STATUS_MAPPING['canceled']:
             self._set_canceled()
