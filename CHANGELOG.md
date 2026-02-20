@@ -4,8 +4,13 @@ All notable changes to the HitPay Odoo Payment Gateway modules.
 
 ## Odoo 19.0
 
+### payment_hitpay v19.0.0.1 - Feb 20, 2026
+- Initial release
+- Ecommerce payment provider
+- Compatible with POS Online Payment method as a payment provider
+
 ### pos_hitpay v19.0.0.1 - Feb 19, 2026
-- Initial release for Odoo 19.0
+- Initial release
 
 ---
 

@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+	<record id="payment_method_hitpay" model="payment.method">
+        <field name="name"><![CDATA[HitPay Payment Gateway]]></field>
+        <field name="code">hitpay</field>
+        <field name="sequence">1000</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/logo.png" />
+        <field name="support_tokenization">False</field>
+        <field name="support_express_checkout">False</field>
+        <field name="support_refund">partial</field>
+    </record>
+	
+	<record id="payment_method_visa_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Visa</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/visa.png"/>
+		<field name="code">visa_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">True</field>
+    </record>
+	<record id="payment_method_master_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Mastercard</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/master.png"/>
+		<field name="code">master_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">True</field>
+    </record>
+	<record id="payment_method_amex_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">American Express</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/amex.png"/>
+		<field name="code">amex_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+	<record id="payment_method_apple_pay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Apple Pay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/apple_pay.png"/>
+		<field name="code">apple_pay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_paynow_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PayNow QR</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/paynow.png"/>
+		<field name="code">paynow_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">True</field>
+    </record>
+    <record id="payment_method_google_pay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Google Pay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/google_pay.png"/>
+		<field name="code">google_pay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_grabpay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">GrabPay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/grabpay.png"/>
+		<field name="code">grabpay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_wechatpay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">WeChatPay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/wechatpay.png"/>
+		<field name="code">wechatpay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_alipay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">AliPay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/alipay.png"/>
+		<field name="code">alipay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_shopeepay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">ShopeePay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/shopeepay.png"/>
+		<field name="code">shopeepay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_fpx_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">FPX</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/fpx.png"/>
+		<field name="code">fpx</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_atomeplus_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">ATome+</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/atomeplus.png"/>
+		<field name="code">atomeplus_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_unionbank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Unionbank Online</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/unionbank.png"/>
+		<field name="code">unionbank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_qrph_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Instapay QR PH</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/qrph.png"/>
+		<field name="code">qrph_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_pesonet_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PESONet</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/pesonet.png"/>
+		<field name="code">pesonet_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_billease_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Billease BNPL</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/billease.png"/>
+		<field name="code">billease_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_gcash_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">GCash</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/gcash.png"/>
+		<field name="code">gcash_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_eftpos_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">eftpos</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/eftpos.png"/>
+		<field name="code">eftpos_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_alfamart_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Alfamart</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/alfamart.png"/>
+		<field name="code">alfamart_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_indomaret_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Indomaret</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/indomaret.png"/>
+		<field name="code">indomaret_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_dana_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">DANA</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/dana.png"/>
+		<field name="code">dana_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_gopay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">gopay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/gopay.png"/>
+		<field name="code">gopay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_linkaja_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Link Aja!</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/linkaja.png"/>
+		<field name="code">linkaja_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_ovo_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">OVO</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/ovo.png"/>
+		<field name="code">ovo_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_qris_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">QRIS</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/qris.png"/>
+		<field name="code">qris_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_danamononline_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Bank Danamon</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/danamon.png"/>
+		<field name="code">danamon_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_permata_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PermataBank</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/permata.png"/>
+		<field name="code">permata_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_bsi_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Bank Syariah Indonesia</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/bsi.png"/>
+		<field name="code">bsi_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_bca_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">BCA</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/bca.png"/>
+		<field name="code">bca_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_bni_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">BNI</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/bni.png"/>
+		<field name="code">bni_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_bri_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">BRI</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/bri.png"/>
+		<field name="code">bri_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_cimb_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">CIMB Niaga</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/cimb.png"/>
+		<field name="code">cimb_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_doku_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">DOKU</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/doku.png"/>
+		<field name="code">doku_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_mandiri_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Mandiri</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/mandiri.png"/>
+		<field name="code">mandiri_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_akulaku_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">AkuLaku BNPL</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/akulaku.png"/>
+		<field name="code">akulaku_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_kredivo_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Kredivo BNPL</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/kredivo.png"/>
+		<field name="code">kredivo_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_philtrustbank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PHILTRUST BANK</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/philtrustbank.png"/>
+		<field name="code">philtrustbank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_allbank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">AllBank</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/allbank.png"/>
+		<field name="code">allbank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_aub_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">ASIA UNITED BANK</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/aub.png"/>
+		<field name="code">aub_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_chinabank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">CHINABANK</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/chinabank.png"/>
+		<field name="code">chinabank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_instapay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">instaPay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/instapay.png"/>
+		<field name="code">instapay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_landbank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">LANDBANK</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/landbank.png"/>
+		<field name="code">landbank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_metrobank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Metrobank</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/metrobank.png"/>
+		<field name="code">metrobank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_pnb_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PNB</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/pnb.png"/>
+		<field name="code">pnb_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_queenbank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">QUEENBANK</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/queenbank.png"/>
+		<field name="code">queenbank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_rcbc_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">RCBC</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/rcbc.png"/>
+		<field name="code">rcbc_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_tayocash_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">TayoCash</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/tayocash.png"/>
+		<field name="code">tayocash_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_ussc_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">USSC</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/ussc.png"/>
+		<field name="code">ussc_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_bayad_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">bayad</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/bayad.png"/>
+		<field name="code">bayad_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_cebuanalhuillier_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">CEBUANA LHUILLIER</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/cebuanalhuillier.png"/>
+		<field name="code">cebuanalhuillier_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_ecpay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">ecPay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/ecpay.png"/>
+		<field name="code">ecpay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_palawan_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PALAWAN PAWNSHOP</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/palawan.png"/>
+		<field name="code">palawan_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_bpi_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">BPI</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/bpi.png"/>
+		<field name="code">bpi_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_psbank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PSBank</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/psbank.png"/>
+		<field name="code">psbank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_robinsonsbank_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Robinsons Bank</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/robinsonsbank.png"/>
+		<field name="code">robinsonsbank_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_doku_wallet_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">DOKU Wallet</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/doku_wallet.png"/>
+		<field name="code">doku_wallet_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_grab_paylater_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">PayLater by Grab</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/grab_paylater.png"/>
+		<field name="code">grab_paylater_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_favepay_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">FavePay</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/favepay.png"/>
+		<field name="code">favepay_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    <record id="payment_method_shopback_paylater_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">ShopBack PayLater</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/shopback_paylater.png"/>
+		<field name="code">shopback_paylater_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+	<record id="payment_method_duitnow_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">DuitNow</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/duitnow.png"/>
+		<field name="code">duitnow_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+	<record id="payment_method_touchngo_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Touch 'n Go</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/touchngo.png"/>
+		<field name="code">touchngo_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+	<record id="payment_method_boost_hitpay" model="payment.method">
+        <field name="sequence">1001</field>
+        <field name="name">Boost</field>
+        <field name="image" type="base64" file="payment_hitpay/static/description/boost.png"/>
+		<field name="code">boost_hitpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
+		<field name="active">False</field>
+    </record>
+    
+</odoo>
