@@ -75,31 +75,31 @@ class Paymentprovider(models.Model):
                 response = requests.get(url, params=payload, headers=headers, timeout=10)
             else:
                 response = requests.post(url, data=dict(payload), headers=headers, timeout=10)
-                _logger.info(
-                    "Response for %s :\n%s",
-                    endpoint, pprint.pformat(payload),
+                
+            _logger.info(
+                "Response for %s :\n%s",
+                endpoint, pprint.pformat(payload),
+            )
+            try:
+                response.raise_for_status()
+                        
+            except requests.exceptions.HTTPError:
+                _logger.exception(
+                    "Invalid API request at %s with data:\n%s", url, pprint.pformat(payload),
                 )
-                try:
-                    response.raise_for_status()
-                            
-                except requests.exceptions.HTTPError:
-                    _logger.exception(
-                        "Invalid API request at %s with data:\n%s", url, pprint.pformat(payload),
-                    )
-                    response_content = response.json()
-                    error_code = response_content.get('error')
-                    error_message = response_content.get('message')
-                    raise ValidationError("HitPay: " + _(
-                        "The communication with the API failed. HitPay Payment Gateway gave us the following "
-                        "information: '%s' (code %s)", error_message, error_code
-                    ))
+                response_content = response.json()
+                error_code = response_content.get('error')
+                error_message = response_content.get('message')
+                raise ValidationError("HitPay: " + _(
+                    "The communication with the API failed. HitPay Payment Gateway gave us the following "
+                    "information: '%s' (code %s)", error_message, error_code
+                ))
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             _logger.exception("Unable to reach endpoint at %s", url)
             raise ValidationError(
                 "HitPay: " + _("Could not establish the connection to the API.")
             )
-        
-
+ 
         return response.json()
     
     def _hitpay_calculate_signature(self, data):

@@ -89,7 +89,7 @@ class PaymentTransaction(models.Model):
         }
 
     def _search_by_reference(self, provider_code, payment_data):
-        """ Override of `payment` to find the transaction based on razorpay data.
+        """ Override of `payment` to find the transaction based on hitpay data.
 
         :param str provider_code: The code of the provider that handled the transaction
         :param dict payment_data: The normalized payment data sent by the provider
@@ -137,12 +137,13 @@ class PaymentTransaction(models.Model):
         if not payment_status:
             raise ValidationError("Hitpay: Received data with missing status.")
 
-        message = "Payment successful. Transaction Id: "+self.hitpay_payment_id+", "
-        message += "Amount Paid: "+self.hitpay_payment_amount
-
         if payment_status in TRANSACTION_STATUS_MAPPING['pending']:
+            message = "Payment is Pending. Transaction Id: "+self.hitpay_payment_id+", "
+            message += "Amount Paid: "+(float)(self.hitpay_payment_amount)
             self._set_pending(state_message=message)
         elif payment_status in TRANSACTION_STATUS_MAPPING['done']:
+            message = "Payment successful. Transaction Id: "+self.hitpay_payment_id+", "
+            message += "Amount Paid: "+(float)(self.hitpay_payment_amount)
             self._set_done(state_message=message)
         elif payment_status in TRANSACTION_STATUS_MAPPING['canceled']:
             self._set_canceled()

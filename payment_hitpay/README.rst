@@ -37,7 +37,7 @@ Configuration
 
 * Go to "Website Admin" tab
 .. image:: images/4-Website-Menu-Selection.png
-* In "Configuration" section, expand "eCommerce" menu than click on "Payment Providers" entry
+* In "Configuration" section, expand "eCommerce" menu then click on "Payment Providers" entry
 .. image:: images/5-Navigate-To-Payment-Providers.png
 * Select HitPay Payment Gateway module
 .. image:: images/6-Select-HitPay-Payment-Gateway.png

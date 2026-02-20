@@ -95,7 +95,7 @@
         <field name="sequence">1001</field>
         <field name="name">FPX</field>
         <field name="image" type="base64" file="payment_hitpay/static/description/fpx.png"/>
-		<field name="code">paynow_hitpay</field>
+		<field name="code">fpx</field>
         <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
 		<field name="active">False</field>
     </record>
