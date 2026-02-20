@@ -74,7 +74,12 @@ class Paymentprovider(models.Model):
             if method == 'GET':
                 response = requests.get(url, params=payload, headers=headers, timeout=10)
             else:
-                response = requests.post(url, data=dict(payload), headers=headers, timeout=10)
+                if payload != 'None':
+                    payload_dict = dict(payload)
+                else :
+                    payload_dict = {}
+                    
+                response = requests.post(url, data=payload_dict, headers=headers, timeout=10)
                 
             _logger.info(
                 "Response for %s :\n%s",

@@ -479,7 +479,7 @@
         <field name="sequence">1001</field>
         <field name="name">ShopBack PayLater</field>
         <field name="image" type="base64" file="payment_hitpay/static/description/shopback_paylater.png"/>
-		<field name="code">paynow_hitpay</field>
+		<field name="code">shopback_paylater_hitpay</field>
         <field name="primary_payment_method_id" eval="ref('payment_method_hitpay')" />
 		<field name="active">False</field>
     </record>
