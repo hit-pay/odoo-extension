@@ -1,0 +1,247 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+import logging
+import pprint
+
+from werkzeug import urls
+
+from odoo import _, models, fields
+from odoo.exceptions import ValidationError
+
+from odoo.addons.payment import utils as payment_utils
+from odoo.addons.payment_hitpay.const import TRANSACTION_STATUS_MAPPING
+from odoo.addons.payment_hitpay.controllers.main import HitpayController
+
+
+_logger = logging.getLogger(__name__)
+
+
+class PaymentTransaction(models.Model):
+    _inherit = 'payment.transaction'
+
+    hitpay_payment_status = fields.Char('Hitpay Transaction Status')
+    hitpay_payment_id = fields.Char('Hitpay Payment ID')
+    hitpay_transaction_id = fields.Char('Hitpay Transaction ID')
+    hitpay_payment_request_id = fields.Char('Hitpay Payment Request ID')
+    hitpay_payment_amount = fields.Char('Hitpay Payment Amount')
+    hitpay_payment_currency = fields.Char('Hitpay Payment Currency')
+    hitpay_refund_id = fields.Char('Hitpay Refund ID')
+    hitpay_refund_amount = fields.Char('Hitpay Refunded Amount')
+    hitpay_refund_currency = fields.Char('Hitpay Refunded Currency')
+    hitpay_refund_createdat = fields.Char('Hitpay Refunded Date')
+
+    def _get_specific_rendering_values(self, processing_values):
+        """ Override of `payment` to return Hitpay-specific rendering values.
+
+        Note: self.ensure_one() from `_get_rendering_values`.
+
+        :param dict processing_values: The generic and specific processing values of the transaction
+        :return: The dict of provider-specific processing values.
+        :rtype: dict
+        """
+        res = super()._get_specific_rendering_values(processing_values)
+        if self.provider_code != 'hitpay':
+            return res
+
+        # Initiate the payment and retrieve the payment link data.
+        payload = self._hitpay_prepare_preference_request_payload()
+
+        
+        payment_response = self.provider_id._hitpay_make_request(
+            '/payment-requests', payload=payload
+        )
+        
+        values = {
+            'hitpay_payment_request_id': payment_response['id'],
+        }
+        self.write(values)
+
+        # Extract the payment link URL and embed it in the redirect form.
+        rendering_values = {
+            'api_url': payment_response['url'],
+        }
+        return rendering_values
+
+    def _hitpay_prepare_preference_request_payload(self):
+        """ Create the payload for the preference request based on the transaction values.
+
+        :return: The request payload.
+        :rtype: dict
+        """
+
+        base_url = self.provider_id.get_base_url()
+        return_url = urls.url_join(
+            base_url, f'{HitpayController._return_url}'
+        )
+        webhook_url = urls.url_join(
+            base_url, f'{HitpayController._webhook_url}'
+        )
+
+        return {
+            'reference_number': self.reference,
+            'amount': self.amount,
+            'currency': self.currency_id.name,
+            'redirect_url': return_url,
+            'webhook': webhook_url,
+            'name': self.getCustomerName(self.partner_name),
+            'email': self.getCustomerEmail(self.partner_email),
+            'channel': 'api_odoo'
+        }
+
+    def _search_by_reference(self, provider_code, payment_data):
+        """ Override of `payment` to find the transaction based on razorpay data.
+
+        :param str provider_code: The code of the provider that handled the transaction
+        :param dict payment_data: The normalized payment data sent by the provider
+        :return: The transaction if found
+        :rtype: payment.transaction
+        :raise: ValidationError if the data match no transaction
+        """
+        
+        tx = super()._search_by_reference(provider_code, payment_data)
+        if provider_code != 'hitpay' or len(tx) == 1:
+            return tx
+
+        reference = payment_data.get('reference_number')
+        if not reference:
+            raise ValidationError("Hitpay: Received data with missing reference.")
+
+        tx = self.search([('reference', '=', reference), ('provider_code', '=', 'hitpay')])
+        if not tx:
+            raise ValidationError(
+                "Hitpay: No transaction found matching reference "+ reference
+            )
+        return tx
+
+    def _apply_updates(self, payment_data):
+        """Override of `payment` to update the transaction based on the payment data."""
+        
+        if self.provider_code != 'hitpay':
+            return super()._apply_updates(payment_data)
+            
+        payment_id = payment_data.get('payment_id')
+        if not payment_id:
+            raise ValidationError("Hitpay: Received data with missing payment id.")
+        
+        self.hitpay_payment_id = payment_id
+        self.hitpay_transaction_id = payment_id
+        self.hitpay_payment_status = payment_data.get('status')
+        self.hitpay_payment_amount = payment_data.get('amount')
+        self.hitpay_payment_currency = payment_data.get('currency')
+        self.provider_reference = payment_id
+        
+        reference_number = payment_data.get('reference_number')
+        
+        payment_status = payment_data.get('status')
+
+        if not payment_status:
+            raise ValidationError("Hitpay: Received data with missing status.")
+
+        message = "Payment successful. Transaction Id: "+self.hitpay_payment_id+", "
+        message += "Amount Paid: "+self.hitpay_payment_amount
+
+        if payment_status in TRANSACTION_STATUS_MAPPING['pending']:
+            self._set_pending(state_message=message)
+        elif payment_status in TRANSACTION_STATUS_MAPPING['done']:
+            self._set_done(state_message=message)
+        elif payment_status in TRANSACTION_STATUS_MAPPING['canceled']:
+            self._set_canceled()
+        else:  # Classify unsupported payment status as the `error` tx state.
+            _logger.warning(
+                "Hitpay: Received data for transaction with reference %s with invalid payment status: %s",
+                reference_number, payment_status
+            )
+            self._set_error(
+                "Hitpay: Received data with invalid status: "+payment_status
+            )
+ 
+    def _send_refund_request(self):
+        """Override of `payment` to send a refund request to Hitpay."""
+        
+        if self.provider_code != 'hitpay':
+            return super()._send_refund_request()
+
+        # Make the refund request to Hitpay
+        converted_amount = -self.amount
+
+        payload = {
+            'payment_id': self.source_transaction_id.hitpay_payment_id,
+            'amount': converted_amount,
+        }
+        
+        response_content = self.provider_id._hitpay_make_request(
+            '/refund', payload=payload
+        )
+
+        _logger.info(
+            "Hitpay refund request response for transaction with reference %s:\n%s",
+            self.reference, pprint.pformat(response_content)
+        )
+
+        # Handle the refund request response
+        self.hitpay_refund_id = response_content.get('id')
+        self.hitpay_refund_createdat = response_content.get('created_at')
+        self.hitpay_refund_amount = response_content.get('amount_refunded')
+        self.hitpay_refund_currency = response_content.get('currency')
+
+        self.provider_reference = self.hitpay_refund_id
+
+        message = "Refund successful. Refund Reference Id: "+self.hitpay_refund_id+", "
+        message += "Payment Id: "+self.source_transaction_id.hitpay_payment_id+", "
+        message += "Amount Refunded: "+self.hitpay_refund_amount+", "
+        message += "Payment Method: "+response_content.get('payment_method')+", "
+        message += "Created At: "+ self.hitpay_refund_createdat
+
+        self._set_done()
+        self.env.ref('payment.cron_post_process_payment_tx')._trigger()
+        
+        pos_order = self.pos_order_id
+        pos_order_id = pos_order.id
+        
+        if (pos_order_id > 0):
+            accountPayment = self.env["account.payment"].search([('pos_order_id', '=', pos_order_id)], limit=1)
+            if (accountPayment):
+                dataUpdate = {
+                    'hitpay_refund_id': self.hitpay_refund_id,
+                    'hitpay_refund_createdat': self.hitpay_refund_createdat,
+                    'hitpay_refund_amount': self.hitpay_refund_amount,
+                    'hitpay_refund_currency': self.hitpay_refund_currency,
+                }
+      
+                accountPayment.write(dataUpdate)
+   
+    def isEmptyString(self, str):
+        return not (str and str.strip())
+    
+    def getCustomerName(self, customer_name):
+        customerName = 'NA'
+        if customer_name and not self.isEmptyString(customer_name):
+            customerName = customer_name
+        return customerName
+    
+    def getCustomerEmail(self, customer_email):
+        customerEmail = 'na@notapplicable.com'
+        if customer_email and not self.isEmptyString(customer_email):
+            customerEmail = customer_email
+        else:
+            user = self.env.user;
+            current_session_email = user.login;
+            if current_session_email and not self.isEmptyString(current_session_email):
+                customerEmail = current_session_email
+                
+        return customerEmail
+        
+    def _extract_amount_data(self, payment_data):
+        """Override of payment to extract the amount and currency from the payment data."""
+        if self.provider_code != 'hitpay':
+            return super()._extract_amount_data(payment_data)
+
+        # Amount and currency are not sent in the payment data when redirecting to the return route.
+        if 'amount' not in payment_data or 'currency' not in payment_data:
+            return
+
+        amount = payment_data['amount']
+        return {
+            'amount': float(amount),
+            'currency_code': payment_data['currency'],
+        }
