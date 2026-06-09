@@ -150,6 +150,10 @@ class PaymentTransaction(models.Model):
             self._set_pending(state_message=message)
         elif payment_status in TRANSACTION_STATUS_MAPPING['done']:
             self._set_done(state_message=message)
+            # Post-Processing code is executed from the Webhook to converts the quotation into a sales order.
+            # When browser is closed before return URL and Quotation remains unconfirmed.
+            self._finalize_post_processing()
+            
         elif payment_status in TRANSACTION_STATUS_MAPPING['canceled']:
             self._set_canceled()
         else:  # Classify unsupported payment status as the `error` tx state.
