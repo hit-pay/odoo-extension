@@ -79,6 +79,13 @@ Refunds
 
 Change Log
 ==========
+
+16.0.0.2
+--------------------
+* Jun 09, 2026
+* Post-Processing code is executed from the Webhook to converts the quotation into a sales order when browser is closed before return URL and Quotation remains unconfirmed.
+
 1.0.
 --------------------
-* Initial release.
+* Jul 26, 2023
+* Initial release
