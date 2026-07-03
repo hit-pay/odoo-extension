@@ -80,31 +80,66 @@ class PaymentProvider(models.Model):
             if event.get("url") == webhook_url:
                 self.write({
                     "hitpay_webhook_event_id": event["id"],
-                    "hitpay_webhook_event_salt": event["salt"],
+                    "hitpay_webhook_event_salt": event.get("salt", False),
                 })
                 return event
 
         return False
  
     def _create_webhook(self):
- 
+
         payload = self._prepare_webhook_payload()
 
         event = self._hitpay_make_request(
             "/webhook-events",
-            payload=payload, 
-            method='POST', 
+            payload=payload,
+            method='POST',
             content_type='json'
         )
-        
+
         self.write({
             "hitpay_webhook_event_id": event["id"],
-            "hitpay_webhook_event_salt": event["salt"],
+            "hitpay_webhook_event_salt": event.get("salt", False),
         })
-       
+
         return event
+
+    def _delete_webhook(self):
+        self.ensure_one()
+
+        if not self.hitpay_webhook_event_id:
+            return
+
+        try:
+            self._hitpay_make_request(
+                f"/webhook-events/{self.hitpay_webhook_event_id}",
+                method="DELETE",
+            )
+            _logger.info(
+                "Deleted HitPay webhook event %s",
+                self.hitpay_webhook_event_id,
+            )
+        except ValidationError:
+            _logger.warning(
+                "Failed to delete HitPay webhook event %s",
+                self.hitpay_webhook_event_id,
+            )
+
+        self.write({
+            "hitpay_webhook_event_id": False,
+            "hitpay_webhook_event_salt": False,
+        })
         
     def write(self, vals):
+        if "state" in vals and vals["state"] == "disabled":
+            disabled_providers = self.filtered(
+                lambda p: p.code == const.PROVIDER_CODE
+                and p.state != "disabled"
+            )
+
+            for provider in disabled_providers:
+                provider._delete_webhook()
+
         res = super().write(vals)
 
         watched = {
@@ -124,6 +159,12 @@ class PaymentProvider(models.Model):
 
         return res
         
+    def unlink(self):
+        for provider in self.filtered(lambda p: p.code == const.PROVIDER_CODE):
+            provider._delete_webhook()
+
+        return super().unlink()
+
     @api.model_create_multi
     def create(self, vals_list):
         providers = super().create(vals_list)

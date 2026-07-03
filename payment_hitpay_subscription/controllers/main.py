@@ -48,7 +48,7 @@ class HitpaySubscriptionController(http.Controller):
         payload = request.get_json_data()
 
         providers = request.env["payment.provider"].sudo().search([
-            ("code", "=", "hitpay_subscription"),
+            ("code", "=", const.PROVIDER_CODE),
             ("state", "!=", "disabled"),
         ])
 
@@ -134,6 +134,7 @@ class HitpaySubscriptionController(http.Controller):
         
         tx = request.env["payment.transaction"].sudo().search([
             ("hitpay_recurring_billing_id", "=", recurring_id),
+            ("provider_id", "=", provider.id),
         ], limit=1)
         
         if not tx:
