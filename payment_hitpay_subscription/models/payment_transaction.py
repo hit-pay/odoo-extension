@@ -142,13 +142,13 @@ class PaymentTransaction(models.Model):
             self._set_done(state_message=message)
         elif payment_status in const.TRANSACTION_STATUS_MAPPING['canceled']:
             self._set_canceled()
-        else:  # Classify unsupported payment status as the `error` tx state.
+        else:
             _logger.warning(
                 "Hitpay: Received data for transaction with invalid payment status: %s",
                  payment_status
             )
             self._set_error(
-                "Hitpay: Received data with invalid status: "+payment_status
+                f"Hitpay: Received data with invalid status: {payment_status}"
             )
     
     def _get_customer_name(self, customer_name):
