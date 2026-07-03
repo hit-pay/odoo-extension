@@ -124,6 +124,7 @@ class PaymentProvider(models.Model):
                 "Failed to delete HitPay webhook event %s",
                 self.hitpay_webhook_event_id,
             )
+            return
 
         self.write({
             "hitpay_webhook_event_id": False,
