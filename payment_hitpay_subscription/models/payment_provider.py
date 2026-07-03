@@ -312,13 +312,13 @@ class PaymentProvider(models.Model):
             return providers
             
         sale_order_id = kwargs.get("sale_order_id")
-        
+
         if not sale_order_id:
             return providers
-            
+
         sale_order = self.env["sale.order"].browse(sale_order_id)
-            
-        if not sale_order:
+
+        if not sale_order.exists():
             return providers
         
         has_subscription = bool(
