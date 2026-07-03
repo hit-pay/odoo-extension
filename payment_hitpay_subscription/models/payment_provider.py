@@ -20,7 +20,8 @@ class PaymentProvider(models.Model):
     _inherit = 'payment.provider'
 
     code = fields.Selection(
-        selection_add=[(const.PROVIDER_CODE, "HitPay Payment Gateway Subscription")], ondelete={const.PROVIDER_CODE: 'set default'}
+        selection_add=[(const.PROVIDER_CODE, "HitPay Payment Gateway Subscription")],
+        ondelete={const.PROVIDER_CODE: 'set default'}
     )
 
     hitpay_subscription_api_key = fields.Char(
@@ -42,6 +43,12 @@ class PaymentProvider(models.Model):
         copy=False,
         groups='base.group_system',
     )
+    
+    _WEBHOOK_TRIGGER_FIELDS  = {
+        "state",
+        "hitpay_subscription_api_key",
+        "hitpay_subscription_api_salt",
+    }
         
     def _ensure_webhook_event(self):
 
@@ -49,10 +56,7 @@ class PaymentProvider(models.Model):
 
         existing = self._get_existing_webhook()
 
-        if existing:
-            return existing
-
-        return self._create_webhook()    
+        return existing or self._create_webhook()   
         
     def _get_existing_webhook(self):
         self.ensure_one()
@@ -104,25 +108,43 @@ class PaymentProvider(models.Model):
 
         return event
 
-    def _delete_webhook(self):
+    def _delete_webhook(
+        self,
+        api_url=None,
+        api_key=None,
+        webhook_id=None,
+    ):
+        """
+        Optional api_url/api_key/webhook_id allow deleting a webhook
+        using the previous provider configuration when switching
+        between Test and Live environments.
+        """
+        
         self.ensure_one()
+        
+        api_url = api_url or self._get_api_url()
+        api_key = api_key or self.hitpay_subscription_api_key
+        webhook_id = webhook_id or self.hitpay_webhook_event_id
 
-        if not self.hitpay_webhook_event_id:
+        if not webhook_id:
             return
 
         try:
             self._hitpay_make_request(
-                f"/webhook-events/{self.hitpay_webhook_event_id}",
+                f"/webhook-events/{webhook_id}",
                 method="DELETE",
+                api_url=api_url,
+                api_key=api_key,
             )
             _logger.info(
                 "Deleted HitPay webhook event %s",
-                self.hitpay_webhook_event_id,
+                webhook_id,
             )
-        except ValidationError:
+        except ValidationError as e:
             _logger.warning(
-                "Failed to delete HitPay webhook event %s",
-                self.hitpay_webhook_event_id,
+                "Failed to delete HitPay webhook event %s. Reason: %s",
+                webhook_id,
+                str(e)
             )
             return
 
@@ -132,24 +154,34 @@ class PaymentProvider(models.Model):
         })
         
     def write(self, vals):
-        res = super().write(vals)
-
-        if "state" in vals and vals["state"] == "disabled":
-            disabled_providers = self.filtered(
-                lambda p: p.code == const.PROVIDER_CODE
-                and p.state == "disabled"
-            )
-
-            for provider in disabled_providers:
-                provider._delete_webhook()
-
-        watched = {
-            "state",
-            "hitpay_subscription_api_key",
-            "hitpay_subscription_api_salt",
+        old_values = {
+            provider.id: {
+                "api_url": provider._get_api_url(),
+                "api_key": provider.hitpay_subscription_api_key,
+                "webhook_id": provider.hitpay_webhook_event_id,
+                "state": provider.state,
+                
+            }
+            for provider in self
         }
 
-        if watched.intersection(vals):
+        res = super().write(vals)
+
+        if "state" in vals:
+            providers = self.filtered(
+                lambda p: p.code == const.PROVIDER_CODE
+            )
+
+            for provider in providers:
+                old_state = old_values[provider.id]["state"]
+                if old_state != provider.state:
+                    provider._delete_webhook(
+                        api_url=old_values[provider.id]["api_url"],
+                        api_key=old_values[provider.id]["api_key"],
+                        webhook_id=old_values[provider.id]["webhook_id"],
+                    )
+
+        if self._WEBHOOK_TRIGGER_FIELDS.intersection(vals):
             providers = self.filtered(
                 lambda p: p.code == const.PROVIDER_CODE
                 and p.state != "disabled"
@@ -189,10 +221,11 @@ class PaymentProvider(models.Model):
                     "Deleted HitPay webhook event %s",
                     data['webhook_id']
                 )
-            except Exception:
+            except Exception as e:
                 _logger.warning(
-                    "Failed to delete HitPay webhook event %s",
-                    data['webhook_id']
+                    "Failed to delete HitPay webhook event %s. Reason: %s",
+                    data['webhook_id'],
+                    str(e)
                 )
 
         return res
@@ -230,6 +263,8 @@ class PaymentProvider(models.Model):
         payload=None,
         method="POST",
         content_type=const.CONTENT_TYPE_FORM,
+        api_url=None,
+        api_key=None,
     ):
         """ Make a request to HitPay API at the specified endpoint.
 
@@ -244,9 +279,9 @@ class PaymentProvider(models.Model):
         """
         self.ensure_one()
 
-        url = self._get_api_url() + endpoint
+        url = (api_url or self._get_api_url()) + endpoint
 
-        headers = self._get_request_headers()
+        headers = self._get_request_headers(api_key=api_key)
         
         request_kwargs = {
             "headers": headers,
@@ -267,10 +302,9 @@ class PaymentProvider(models.Model):
         try:
 
             _logger.debug(
-                "[HitPay][%s] %s %s\n%s",
-                self.state,
+                "[HitPay] %s %s\n%s",
                 method,
-                endpoint,
+                url,
                 pprint.pformat(payload),
             )
 
@@ -283,23 +317,25 @@ class PaymentProvider(models.Model):
             try:
                 response_content = response.json()
             except ValueError:
-                response_content = {}
+                response_content = {
+                    "_raw_response": response.text
+                }
 
             _logger.debug(
                 "[HitPay][%s] Response %s\n%s",
-                self.state,
-                endpoint,
+                url,
                 pprint.pformat(response_content),
             )
             
             try:
                 response.raise_for_status()
                         
-            except requests.exceptions.HTTPError:
+            except requests.exceptions.HTTPError as e:
                 _logger.exception(
-                    "HitPay HTTP %s for %s",
+                    "HitPay HTTP %s for %s. Reason: %s",
                     response.status_code,
                     endpoint,
+                    str(e)
                 )
                 error_code = response_content.get('error')
                 error_message = response_content.get('message')
@@ -307,8 +343,8 @@ class PaymentProvider(models.Model):
                     "The communication with the API failed. HitPay Payment Gateway gave us the following "
                     "information: '%s' (code %s)", error_message, error_code
                 ))
-        except requests.exceptions.RequestException:
-            _logger.exception("Unable to reach endpoint at %s", url)
+        except requests.exceptions.RequestException as e:
+            _logger.exception("Unable to reach endpoint at %s. Reason: %s", url, str(e))
             self._raise_api_error(
                 "HitPay Subscription: " + _("Could not establish the connection to the API.")
             )
@@ -343,10 +379,10 @@ class PaymentProvider(models.Model):
             "event_types": list(const.WEBHOOK_EVENT_TYPES)
         }
         
-    def _get_request_headers(self):
+    def _get_request_headers(self, api_key=None):
         return {
             "X-Requested-With": "XMLHttpRequest",
-            "X-BUSINESS-API-KEY": self.hitpay_subscription_api_key,
+            "X-BUSINESS-API-KEY": api_key or self.hitpay_subscription_api_key,
         }
         
     def _raise_api_error(self, message):
@@ -389,9 +425,9 @@ class PaymentProvider(models.Model):
         if not sale_order_id:
             return providers
 
-        sale_order = self.env["sale.order"].browse(sale_order_id)
+        sale_order = self.env["sale.order"].browse(sale_order_id).exists()
 
-        if not sale_order.exists():
+        if not sale_order:
             return providers
         
         has_subscription = bool(
