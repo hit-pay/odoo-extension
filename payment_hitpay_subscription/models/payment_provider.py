@@ -40,6 +40,7 @@ class PaymentProvider(models.Model):
     hitpay_webhook_event_salt = fields.Char(
         string="HitPay Webhook Event Salt",
         copy=False,
+        groups='base.group_system',
     )
         
     def _ensure_webhook_event(self):
@@ -191,15 +192,15 @@ class PaymentProvider(models.Model):
             request_kwargs["data"] = payload
 		
         try:
-            
-            _logger.info(
+
+            _logger.debug(
                 "[HitPay][%s] %s %s\n%s",
                 self.state,
                 method,
                 endpoint,
                 pprint.pformat(payload),
             )
-               
+
             response = requests.request(
                 method,
                 url,
@@ -210,8 +211,8 @@ class PaymentProvider(models.Model):
                 response_content = response.json()
             except ValueError:
                 response_content = {}
-            
-            _logger.info(
+
+            _logger.debug(
                 "[HitPay][%s] Response %s\n%s",
                 self.state,
                 endpoint,
@@ -328,7 +329,7 @@ class PaymentProvider(models.Model):
             self.env["payment.token"].sudo().search_count(
                 [
                     ("partner_id", "=", partner_id),
-                    ("provider_code", "=", const.PROVIDER_CODE),
+                    ("provider_id", "in", subscription_provider.ids),
                     ("active", "=", True),
                     ("hitpay_method_status", "=", "active"),
                 ],
