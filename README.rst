@@ -7,19 +7,19 @@ Official Odoo integration for `HitPay Payment Solutions <https://www.hitpayapp.c
 Supported Odoo Versions
 =======================
 
-+-------------+------------------+------------------+
-| Odoo Version| payment_hitpay   | pos_hitpay       |
-+=============+==================+==================+
-| 19.0        | Yes              | Yes              |
-+-------------+------------------+------------------+
-| 18.0        | Yes              | Yes              |
-+-------------+------------------+------------------+
-| 17.0        | Yes              | Yes              |
-+-------------+------------------+------------------+
-| 16.0        | Yes              | Yes              |
-+-------------+------------------+------------------+
-| 15.0        | Yes              | No               |
-+-------------+------------------+------------------+
++-------------+------------------+------------------+------------------------------------+
+| Odoo Version| payment_hitpay   | pos_hitpay       | payment_hitpay_subscription      	 |
++=============+==================+==================+====================================+
+| 19.0        | Yes              | Yes              | Yes								 |
++-------------+------------------+------------------+------------------------------------+
+| 18.0        | Yes              | Yes              | No								 |
++-------------+------------------+------------------+------------------------------------+
+| 17.0        | Yes              | Yes              | No     							 |
++-------------+------------------+------------------+------------------------------------+
+| 16.0        | Yes              | Yes              | No								 |
++-------------+------------------+------------------+------------------------------------+
+| 15.0        | Yes              | No               | No								 |
++-------------+------------------+------------------+------------------------------------+
 
 Installation
 ============
@@ -76,6 +76,14 @@ Integrates HitPay with Odoo POS for in-store payments.
 3. Set *Use a Payment Terminal* to *HitPay Payment Gateway*
 4. Enter your API Key, Salt, and Terminal ID
 5. Add the payment method to your POS configuration
+
+
+payment_hitpay_subscription - Odoo Enterprise E-commerce Payment Gateway Subscription/Recurring Payments
+-------------------------------------------
+
+HitPay Subscription Payment Provider integrates HitPay Recurring Billing with
+Odoo Subscriptions, allowing merchants to securely collect recurring payments
+using saved customer payment methods.
 
 Requirements
 ============
