@@ -4,6 +4,17 @@ All notable changes to the HitPay Odoo Payment Gateway modules.
 
 ## Odoo 19.0
 
+### payment_hitpay_subscription v19.0.0.1 - Jul 03, 2026
+* Initial release.
+* Standalone HitPay Subscription payment provider for Odoo Enterprise.
+* Secure payment tokenization.
+* Automatic recurring subscription billing.
+* Automatic webhook registration and cleanup.
+* Secure webhook signature verification.
+* Automatic payment method lifecycle management.
+* Configurable recurring payment methods.
+* Intelligent provider visibility during checkout.
+
 ### payment_hitpay v19.0.0.1 - Feb 20, 2026
 - Initial release
 - Ecommerce payment provider

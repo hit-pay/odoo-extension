@@ -1,0 +1,336 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan" style="color:#875A7B;">
+            HitPay Subscription Payment Provider
+        </h2>
+
+        <h3 class="oe_slogan">
+            Secure recurring subscription payments for Odoo 19 using HitPay with payment tokenization,
+            automatic renewals, and seamless integration with Odoo Subscriptions.
+        </h3>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Overview</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <p style="font-size:17px;">
+                HitPay Subscription Payment Provider integrates HitPay Recurring Billing with
+                Odoo Subscriptions, allowing customers to securely authorize a payment method
+                during the initial checkout. Future subscription renewals are charged
+                automatically using the saved payment method without requiring customer
+                interaction.
+            </p>
+
+            <p style="font-size:17px;">
+                The module automatically manages payment tokenization, recurring billing,
+                webhook registration, payment method lifecycle, and recurring subscription
+                payments while remaining fully integrated with the standard Odoo payment
+                framework.
+            </p>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Features</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <ul class="list-unstyled" style="font-size:17px;">
+
+                <li>✔ Secure payment method tokenization.</li>
+
+                <li>✔ Automatic recurring subscription billing.</li>
+
+                <li>✔ Automatic webhook registration and removal.</li>
+
+                <li>✔ Secure webhook signature verification.</li>
+
+                <li>✔ Automatic payment method attachment and detachment.</li>
+
+                <li>✔ Saved payment methods for future payments.</li>
+
+                <li>✔ Online and offline token payments.</li>
+
+                <li>✔ Configurable recurring payment methods.</li>
+
+                <li>✔ Intelligent provider visibility during checkout.</li>
+
+                <li>✔ Standalone payment provider for Odoo 19 Enterprise.</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Supported Recurring Payment Methods</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <p style="font-size:17px;">
+                Merchants can enable only the recurring payment methods supported by their
+                HitPay account. The enabled payment methods are displayed automatically during
+                checkout.
+            </p>
+
+            <ul class="list-unstyled" style="font-size:17px;">
+
+                <li>• Visa</li>
+                <li>• Mastercard</li>
+                <li>• American Express</li>
+                <li>• GrabPay</li>
+                <li>• ShopeePay</li>
+                <li>• Touch 'n Go</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Configuration</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <ul class="list-unstyled" style="font-size:17px;">
+
+                <li>1. Install the HitPay Subscription Payment Provider module.</li>
+
+                <li>2. Open <strong>Accounting → Configuration → Payment Providers</strong>.</li>
+
+                <li>3. Configure your HitPay API credentials.</li>
+
+                <li>4. Publish the payment provider.</li>
+
+                <li>5. Enable the recurring payment methods supported by your HitPay account.</li>
+
+                <li>6. The webhook is created automatically during module installation.</li>
+
+            </ul>
+
+        </div>
+
+        <div class="oe_span12">
+            <img class="oe_picture oe_screenshot" src="7-Configure-Credentials.png">
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Subscription Checkout Flow</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <ul class="list-unstyled" style="font-size:17px;">
+
+                <li>1. Customer selects <strong>HitPay Subscription</strong> during checkout.</li>
+
+                <li>2. Customer is redirected to the secure HitPay hosted payment page.</li>
+
+                <li>3. Customer authorizes a recurring payment method.</li>
+
+                <li>4. HitPay securely tokenizes the payment method.</li>
+
+                <li>5. Odoo automatically stores the payment token.</li>
+
+                <li>6. The initial subscription payment is completed.</li>
+
+                <li>7. Future subscription renewals are charged automatically using the saved payment method.</li>
+
+            </ul>
+
+        </div>
+
+        <div class="oe_span12">
+            <img class="oe_picture oe_screenshot" src="9-Frontend-Checkout-Page-Choose-Hitpay.png">
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Webhook Processing</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <p style="font-size:17px;">
+                The module automatically handles HitPay recurring billing webhooks to manage
+                the payment method lifecycle.
+            </p>
+
+            <ul class="list-unstyled" style="font-size:17px;">
+
+                <li>• Automatic payment method attachment.</li>
+
+                <li>• Automatic payment method detachment.</li>
+
+                <li>• Secure webhook signature verification.</li>
+
+                <li>• Automatic webhook lifecycle management.</li>
+
+            </ul>
+
+            <p style="font-size:17px;">
+                Recurring payment transactions are processed synchronously using the immediate
+                API response returned by HitPay, ensuring reliable transaction processing.
+            </p>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Important Note</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <p style="font-size:17px;">
+                Subscription products intended for automatic recurring billing should use
+                <strong>Invoicing Policy = Ordered Quantities</strong>.
+                Products configured with <strong>Delivered Quantities</strong> cannot be
+                automatically invoiced until they become invoiceable according to Odoo's
+                standard invoicing rules.
+            </p>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Feature Summary</h2>
+
+        <div class="oe_span12">
+
+            <table class="table table-bordered" style="font-size:16px;">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Support</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>Subscription Payments</td>
+                        <td>✔</td>
+                    </tr>
+
+                    <tr>
+                        <td>Payment Tokenization</td>
+                        <td>✔</td>
+                    </tr>
+
+                    <tr>
+                        <td>Automatic Subscription Renewal</td>
+                        <td>✔</td>
+                    </tr>
+
+                    <tr>
+                        <td>Saved Payment Methods</td>
+                        <td>✔</td>
+                    </tr>
+
+                    <tr>
+                        <td>Webhook Registration</td>
+                        <td>✔</td>
+                    </tr>
+
+                    <tr>
+                        <td>Webhook Signature Verification</td>
+                        <td>✔</td>
+                    </tr>
+
+                    <tr>
+                        <td>Automatic Payment Method Lifecycle</td>
+                        <td>✔</td>
+                    </tr>
+
+                    <tr>
+                        <td>Refund Support</td>
+                        <td>Not Supported</td>
+                    </tr>
+
+                    <tr>
+                        <td>Express Checkout</td>
+                        <td>Not Supported</td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+
+        <h2 class="oe_slogan" style="color:#875A7B;">Change Log</h2>
+
+        <div class="oe_span12 text-justify oe_mt32">
+
+            <ul class="list-unstyled" style="font-size:17px;">
+
+                <li>
+                    <strong>Version 19.0.0.1</strong><br/>
+
+                    • Initial release.<br/>
+
+                    • Standalone HitPay Subscription payment provider.<br/>
+
+                    • Payment tokenization support.<br/>
+
+                    • Automatic recurring subscription billing.<br/>
+
+                    • Automatic webhook registration and cleanup.<br/>
+
+                    • Secure webhook signature verification.<br/>
+
+                    • Automatic payment method lifecycle management.<br/>
+
+                    • Configurable recurring payment methods.<br/>
+
+                    • Intelligent provider visibility during checkout.
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="oe_container oe_separator">
+</section>
