@@ -91,10 +91,13 @@ class HitpaySubscriptionController(http.Controller):
         if not received_signature:
             raise Forbidden("Missing webhook signature")
 
+        if not salt:
+            raise Forbidden("Missing webhook salt")
+
         received_signature = received_signature.strip()
 
         expected_signature = hmac.new(
-            salt.encode("utf-8"),
+            str(salt).encode("utf-8"),
             raw_body,
             hashlib.sha256,
         ).hexdigest().strip()
@@ -108,10 +111,17 @@ class HitpaySubscriptionController(http.Controller):
             raise Forbidden("Invalid webhook signature")
            
     def _handle_method_attached(self, provider, payload):
+        try:
+            recurring_id = payload["recurring_billing"]["id"]
+            payment_method = payload["recurring_billing"]["payment_method"]
+        except KeyError as e:
+            _logger.error(
+                "Malformed method_attached webhook payload, missing key: %s\n%s",
+                e,
+                pprint.pformat(payload),
+            )
+            return "OK"
 
-        recurring_id = payload["recurring_billing"]["id"]
-
-        payment_method = payload["recurring_billing"]["payment_method"]
         card_data = payment_method.get("card")
 
         if card_data:
@@ -162,50 +172,7 @@ class HitpaySubscriptionController(http.Controller):
         
         tx.token_id = token
 
-        if tx.provider_reference:
-            _logger.info(
-                "Transaction %s already has provider_reference %s, skipping charge to prevent duplicate billing",
-                tx.reference,
-                tx.provider_reference,
-            )
-            return "OK"
-
-        charge_payload  = {
-            'amount': tx.amount,
-            'currency': tx.currency_id.name
-        }
-
-        _logger.info(
-            "HMA: Charging HitPay recurring billing %s",
-            recurring_id,
-        )
-
-        response = tx.provider_id._hitpay_make_request(
-            f"/charge/recurring-billing/{recurring_id}",
-            payload=charge_payload,
-        )
-        
-        payment_id = response.get("payment_id")
-
-        if not payment_id:
-            _logger.error(
-                "HitPay recurring charge failed:\n%s",
-                pprint.pformat(response),
-            )
-            tx._set_error("HitPay did not return a payment ID for recurring charge")
-            return "OK"
-            
-        _logger.info(
-            "HMA: Recurring charge created. Payment ID: %s",
-            payment_id,
-        )
-            
-        tx.provider_reference  = payment_id
-        
-        response["currency_code"] = response["currency"]
-        response["id"] = payment_id
-
-        tx._process(const.PROVIDER_CODE, response)
+        tx._charge_recurring_billing(recurring_id)
 
         return "OK"
         
@@ -220,8 +187,15 @@ class HitpaySubscriptionController(http.Controller):
         recurring charge, therefore the `charge.created` webhook cannot be
         reliably correlated with an Odoo transaction and is acknowledged only.
         """
-
-        payment_id = payload["id"]
+        try:
+            payment_id = payload["id"]
+        except KeyError as e:
+            _logger.error(
+                "Malformed charge_created webhook payload, missing key: %s\n%s",
+                e,
+                pprint.pformat(payload),
+            )
+            return "OK"
 
         _logger.info(
             "Ignoring recurring charge webhook for payment %s. "
@@ -235,8 +209,15 @@ class HitpaySubscriptionController(http.Controller):
         """
         Archive/remove payment.token
         """
-        
-        recurring_id = payload["recurring_billing"]["id"]
+        try:
+            recurring_id = payload["recurring_billing"]["id"]
+        except KeyError as e:
+            _logger.error(
+                "Malformed method_detached webhook payload, missing key: %s\n%s",
+                e,
+                pprint.pformat(payload),
+            )
+            return "OK"
 
         token = request.env["payment.token"].sudo().search([
             ("provider_id", "=", provider.id),

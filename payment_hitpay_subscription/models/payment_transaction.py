@@ -39,12 +39,16 @@ class PaymentTransaction(models.Model):
         payment_response = self.provider_id._hitpay_make_request(
             '/recurring-billing', payload=payload
         )
-        
+
+        if "id" not in payment_response or "url" not in payment_response:
+            self.provider_id._raise_api_error(
+                _("HitPay API response missing required fields 'id' or 'url'.")
+            )
+
         self.write({
             "hitpay_recurring_billing_id": payment_response["id"],
         })
 
-        # Extract the payment link URL and embed it in the redirect form.
         return {
             "api_url": payment_response["url"],
         }
@@ -180,58 +184,80 @@ class PaymentTransaction(models.Model):
             'currency_code': str(payment_data['currency']).upper(),
         }
         
-    def _send_payment_request(self):
-        
-        if self.provider_code != const.PROVIDER_CODE:
-            return super()._send_payment_request()
+    def _charge_recurring_billing(self, recurring_id):
 
-        recurring_id = self.token_id.provider_ref
-        
-        _logger.info(
-            "SPS: Charging HitPay recurring billing %s",
-            recurring_id,
-        ) 
+        self.ensure_one()
+
+        if self.provider_reference:
+            _logger.info(
+                "Transaction %s already has provider_reference %s, skipping charge to prevent duplicate billing",
+                self.reference,
+                self.provider_reference,
+            )
+            return True
 
         payload = {
             'amount': self.amount,
             'currency': self.currency_id.name
         }
-        
+
+        _logger.info(
+            "Charging HitPay recurring billing %s",
+            recurring_id,
+        )
+
         response = self.provider_id._hitpay_make_request(
             f"/charge/recurring-billing/{recurring_id}",
             payload=payload,
         )
-        
+
         payment_id = response.get("payment_id")
-        
+
         if not payment_id:
-            self.provider_id._raise_api_error(
-                _("HitPay did not return a payment ID.")
+            _logger.error(
+                "HitPay recurring charge failed:\n%s",
+                response,
             )
-        
-        if response.get("status") not in const.TRANSACTION_STATUS_MAPPING["done"]:
-            self.provider_id._raise_api_error(
-                _(
-                    "SPS: HitPay Subscription charge failed for the recurring billing ID %s with status %s."
-                ) % (
-                    recurring_id,
-                    response.get("status"),
-                )
-            )
-            
+            self._set_error("HitPay did not return a payment ID for recurring charge")
+            return False
+
         _logger.info(
-            "SPS: Recurring charge created. Payment ID: %s",
+            "Recurring charge created. Payment ID: %s",
             payment_id,
         )
-        
+
+        if "currency" not in response:
+            _logger.error(
+                "HitPay recurring charge response missing currency:\n%s",
+                response,
+            )
+            self._set_error("HitPay response missing currency field")
+            return False
+
         self.write({
             "provider_reference": payment_id,
         })
-        
+
         response["currency_code"] = response["currency"]
         response["id"] = payment_id
 
         self._process(const.PROVIDER_CODE, response)
+        return True
+
+    def _send_payment_request(self):
+
+        if self.provider_code != const.PROVIDER_CODE:
+            return super()._send_payment_request()
+
+        recurring_id = self.token_id.provider_ref
+        success = self._charge_recurring_billing(recurring_id)
+
+        if not success:
+            self.provider_id._raise_api_error(
+                _("HitPay recurring charge failed.")
+            )
             
     def _is_tokenization_required(self, **kwargs):
+        if self.provider_code != const.PROVIDER_CODE:
+            return super()._is_tokenization_required(**kwargs)
         return True
