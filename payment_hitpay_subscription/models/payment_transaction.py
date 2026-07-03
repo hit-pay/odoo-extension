@@ -87,9 +87,14 @@ class PaymentTransaction(models.Model):
         tx = super()._search_by_reference(provider_code, payment_data)
         if provider_code != const.PROVIDER_CODE or len(tx) == 1:
             return tx
-            
-        payment_id = payment_data["id"]
-        
+
+        payment_id = payment_data.get("id")
+
+        if not payment_id:
+            raise ValidationError(
+                _("HitPay payment notification is missing required 'id' field.")
+            )
+
         tx = self.sudo().search([
             ("provider_reference", "=", payment_id),
             ("provider_code", "=", const.PROVIDER_CODE),

@@ -36,7 +36,7 @@ class HitpaySubscriptionController(http.Controller):
 
     @http.route(_webhook_url, type='http', auth='public', methods=['POST'], csrf=False)
     def hitpay_subscription_webhook(self, **kwargs):
-        
+
         raw_body = request.httprequest.get_data()
 
         headers = request.httprequest.headers
@@ -47,20 +47,31 @@ class HitpaySubscriptionController(http.Controller):
 
         payload = request.get_json_data()
 
-        provider = request.env["payment.provider"].sudo().search([
+        providers = request.env["payment.provider"].sudo().search([
             ("code", "=", "hitpay_subscription"),
             ("state", "!=", "disabled"),
-        ], limit=1)
-        
-        if not provider:
+        ])
+
+        if not providers:
             _logger.error("HitPay Subscription provider not found.")
             return "OK"
 
-        self._verify_signature(
-            provider.hitpay_webhook_event_salt,
-            raw_body,
-            signature,
-        )
+        provider = None
+        for candidate in providers:
+            try:
+                self._verify_signature(
+                    candidate.hitpay_webhook_event_salt,
+                    raw_body,
+                    signature,
+                )
+                provider = candidate
+                break
+            except Forbidden:
+                continue
+
+        if not provider:
+            _logger.error("No provider with valid webhook signature found.")
+            raise Forbidden("Invalid webhook signature")
 
         if event_object == "recurring_billing":
             if event_type == "method_attached":
@@ -150,12 +161,20 @@ class HitpaySubscriptionController(http.Controller):
             )
         
         tx.token_id = token
-        
+
+        if tx.provider_reference:
+            _logger.info(
+                "Transaction %s already has provider_reference %s, skipping charge to prevent duplicate billing",
+                tx.reference,
+                tx.provider_reference,
+            )
+            return "OK"
+
         charge_payload  = {
             'amount': tx.amount,
             'currency': tx.currency_id.name
         }
-        
+
         _logger.info(
             "HMA: Charging HitPay recurring billing %s",
             recurring_id,
@@ -167,12 +186,13 @@ class HitpaySubscriptionController(http.Controller):
         )
         
         payment_id = response.get("payment_id")
-        
+
         if not payment_id:
             _logger.error(
                 "HitPay recurring charge failed:\n%s",
                 pprint.pformat(response),
             )
+            tx._set_error("HitPay did not return a payment ID for recurring charge")
             return "OK"
             
         _logger.info(
