@@ -26,3 +26,12 @@ WEBHOOK_EVENT_TYPES = (
 
 DEFAULT_WEBHOOK_NAME = "Odoo Subscription"
 DEFAULT_SUBSCRIPTION_NAME = "Odoo Subscription"
+
+PAYMENT_METHOD_DISPLAY_NAMES = {
+    "grabpay_direct": "GrabPay",
+    "shopee_pay": "ShopeePay",
+    "touch_n_go": "Touch 'n Go",
+    "paynow_online": "PayNow",
+    "wechat": "WeChat Pay",
+    "alipay": "Alipay",
+}

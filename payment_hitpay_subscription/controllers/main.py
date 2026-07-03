@@ -130,7 +130,10 @@ class HitpaySubscriptionController(http.Controller):
             payment_details = f"{brand.upper()} ****{last4}"
         else:
             method_type = payment_method.get("type", "Payment Method")
-            payment_details = method_type.title()
+            payment_details = const.PAYMENT_METHOD_DISPLAY_NAMES.get(
+                method_type,
+                method_type.title()
+            )
         
         tx = request.env["payment.transaction"].sudo().search([
             ("hitpay_recurring_billing_id", "=", recurring_id),
