@@ -132,16 +132,16 @@ class PaymentProvider(models.Model):
         })
         
     def write(self, vals):
+        res = super().write(vals)
+
         if "state" in vals and vals["state"] == "disabled":
             disabled_providers = self.filtered(
                 lambda p: p.code == const.PROVIDER_CODE
-                and p.state != "disabled"
+                and p.state == "disabled"
             )
 
             for provider in disabled_providers:
                 provider._delete_webhook()
-
-        res = super().write(vals)
 
         watched = {
             "state",
@@ -161,10 +161,41 @@ class PaymentProvider(models.Model):
         return res
         
     def unlink(self):
+        webhook_data = []
         for provider in self.filtered(lambda p: p.code == const.PROVIDER_CODE):
-            provider._delete_webhook()
+            if provider.hitpay_webhook_event_id:
+                webhook_data.append({
+                    'webhook_id': provider.hitpay_webhook_event_id,
+                    'api_key': provider.hitpay_subscription_api_key,
+                    'api_url': provider._get_api_url(),
+                })
 
-        return super().unlink()
+        res = super().unlink()
+
+        for data in webhook_data:
+            try:
+                url = data['api_url'] + f"/webhook-events/{data['webhook_id']}"
+                headers = {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-BUSINESS-API-KEY": data['api_key'],
+                }
+                response = requests.delete(
+                    url,
+                    headers=headers,
+                    timeout=const.REQUEST_TIMEOUT
+                )
+                response.raise_for_status()
+                _logger.info(
+                    "Deleted HitPay webhook event %s",
+                    data['webhook_id']
+                )
+            except Exception:
+                _logger.warning(
+                    "Failed to delete HitPay webhook event %s",
+                    data['webhook_id']
+                )
+
+        return res
 
     @api.model_create_multi
     def create(self, vals_list):
