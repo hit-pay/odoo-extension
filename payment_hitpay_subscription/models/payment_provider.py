@@ -2,9 +2,6 @@
 
 import logging
 import pprint
-import hmac
-import hashlib
-
 
 import requests
 from werkzeug import urls
@@ -243,28 +240,6 @@ class PaymentProvider(models.Model):
             )
  
         return response_content
-    
-    def _hitpay_calculate_signature(self, data):
-        """ Compute the signature for the provided data according to the Hitpay documentation.
-
-        :param dict data: The data to sign.
-        :return: The calculated signature.
-        :rtype: str
-        """
-    
-        signing_string = "".join(
-            f"{k}{data[k]}"
-            for k in sorted(data)
-            if k != "hmac"
-        )
-
-        signature = hmac.new(
-            self.hitpay_subscription_api_salt.encode(),
-            msg=signing_string.encode(),
-            digestmod=hashlib.sha256
-        ).hexdigest()
-
-        return signature
 
     def _get_default_payment_method_codes(self):
         """ Override of `payment` to return the default payment method codes. """
