@@ -274,13 +274,10 @@ class PaymentProvider(models.Model):
         return const.DEFAULT_PAYMENT_METHOD_CODES
    
     def _get_webhook_url(self):
-        return 'https://webhook.site/30c9e60b-34bf-4538-bdb3-9ce772a91868'
-        """
         return urls.url_join(
             self.get_base_url(),
             HitpaySubscriptionController._webhook_url,
         )
-        """
         
     def _get_return_url(self):
         return urls.url_join(
