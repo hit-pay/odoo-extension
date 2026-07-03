@@ -79,7 +79,7 @@ Integrates HitPay with Odoo POS for in-store payments.
 
 
 payment_hitpay_subscription - Odoo Enterprise E-commerce Payment Gateway Subscription/Recurring Payments
--------------------------------------------
+---------------------------------------------------------------------------------------------------------
 
 HitPay Subscription Payment Provider integrates HitPay Recurring Billing with
 Odoo Subscriptions, allowing merchants to securely collect recurring payments
