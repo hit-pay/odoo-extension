@@ -6,14 +6,14 @@ Thank you for your interest in contributing to the HitPay Odoo Payment Gateway m
 
 This repository uses **version branches** to support multiple Odoo versions:
 
-| Branch | Odoo Version | Status |
-|--------|--------------|--------|
-| `19.0` | Odoo 19.0 | Active |
-| `18.0` | Odoo 18.0 | Active |
-| `17.0` | Odoo 17.0 | Active |
-| `16.0` | Odoo 16.0 | Maintenance |
-| `15.0` | Odoo 15.0 | Maintenance |
-| `main` | Latest (19.0) | Active |
+| Branch | Odoo Version  | Status |
+|--------|---------------|-------------|
+| `19.0` | Odoo 19.0     | Active      |
+| `18.0` | Odoo 18.0     | Active      |
+| `17.0` | Odoo 17.0     | Active      |
+| `16.0` | Odoo 16.0     | Maintenance |
+| `15.0` | Odoo 15.0     | Maintenance |
+| `main` | Latest (19.0) | Active      |
 
 ### Branch Definitions
 

@@ -1,0 +1,31 @@
+{
+    "name": "HitPay Payment Gateway Subscription",
+    "version": "19.0.0.1",
+    "category": "Accounting/Payment Providers",
+    "sequence": 350,
+    "summary": "Enable HitPay recurring payments for Odoo subscriptions.",
+    "author": "HitPay Payment Solutions Pte Ltd",
+    "website": "https://www.hitpayapp.com",
+
+    "depends": [
+        "payment",
+        "sale_subscription",
+    ],
+
+    "data": [
+        "data/payment_method_data.xml",
+        "data/payment_provider_data.xml",
+        "views/payment_hitpay_templates.xml",
+        "views/payment_provider_views.xml",
+    ],
+
+    "images": ["images/main_screenshot.png"],
+
+    "application": False,
+    "installable": True,
+
+    "post_init_hook": "post_init_hook",
+    "uninstall_hook": "uninstall_hook",
+
+    "license": "LGPL-3",
+}
