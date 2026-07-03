@@ -80,7 +80,7 @@ class PaymentProvider(models.Model):
             if event.get("url") == webhook_url:
                 self.write({
                     "hitpay_webhook_event_id": event["id"],
-                    "hitpay_webhook_event_salt": event.get("salt", False),
+                    "hitpay_webhook_event_salt": event.get("salt") or self.hitpay_webhook_event_salt or self.hitpay_subscription_api_salt,
                 })
                 return event
 
