@@ -100,8 +100,16 @@ class HitpaySubscriptionController(http.Controller):
 
         recurring_id = payload["recurring_billing"]["id"]
 
-        brand = payload["recurring_billing"]["payment_method"]["card"]["brand"]
-        last4 = payload["recurring_billing"]["payment_method"]["card"]["last4"]
+        payment_method = payload["recurring_billing"]["payment_method"]
+        card_data = payment_method.get("card")
+
+        if card_data:
+            brand = card_data.get("brand", "Card")
+            last4 = card_data.get("last4", "****")
+            payment_details = f"{brand.upper()} ****{last4}"
+        else:
+            method_type = payment_method.get("type", "Payment Method")
+            payment_details = method_type.title()
         
         tx = request.env["payment.transaction"].sudo().search([
             ("hitpay_recurring_billing_id", "=", recurring_id),
@@ -127,7 +135,7 @@ class HitpaySubscriptionController(http.Controller):
                 "partner_id": tx.partner_id.id,
                 "payment_method_id": tx.payment_method_id.id,
                 "provider_ref": recurring_id,
-                "payment_details": f"{brand.upper()} ****{last4}",
+                "payment_details": payment_details,
                 "hitpay_recurring_billing_id":recurring_id,
             })
             
