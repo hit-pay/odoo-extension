@@ -28,9 +28,9 @@
 
             <p style="font-size:17px;">
                 The module automatically manages payment tokenization, recurring billing,
-                webhook registration, payment method lifecycle, and recurring subscription
-                payments while remaining fully integrated with the standard Odoo payment
-                framework.
+                automatic webhook lifecycle management, payment method lifecycle management,
+				and subscription renewals while remaining fully integrated with the standard 
+				Odoo payment framework.
             </p>
 
         </div>
@@ -47,25 +47,25 @@
 
             <ul class="list-unstyled" style="font-size:17px;">
 
-                <li>✔ Secure payment method tokenization.</li>
+                <li>&#10004; Secure payment method tokenization.</li>
 
-                <li>✔ Automatic recurring subscription billing.</li>
+                <li>&#10004; Automatic recurring subscription billing.</li>
 
-                <li>✔ Automatic webhook registration and removal.</li>
+                <li>&#10004; Automatic webhook lifecycle management.</li>
 
-                <li>✔ Secure webhook signature verification.</li>
+                <li>&#10004; Secure webhook signature verification.</li>
 
-                <li>✔ Automatic payment method attachment and detachment.</li>
+                <li>&#10004; Automatic payment method attachment and detachment.</li>
 
-                <li>✔ Saved payment methods for future payments.</li>
+                <li>&#10004; Saved payment methods for future payments.</li>
 
-                <li>✔ Online and offline token payments.</li>
+                <li>&#10004; Online and offline token payments.</li>
 
-                <li>✔ Configurable recurring payment methods.</li>
+                <li>&#10004; Configurable recurring payment methods.</li>
 
-                <li>✔ Intelligent provider visibility during checkout.</li>
+                <li>&#10004; Intelligent provider visibility during checkout.</li>
 
-                <li>✔ Standalone payment provider for Odoo 19 Enterprise.</li>
+                <li>&#10004; Standalone payment provider for Odoo 19 Enterprise.</li>
 
             </ul>
 
@@ -89,12 +89,12 @@
 
             <ul class="list-unstyled" style="font-size:17px;">
 
-                <li>• Visa</li>
-                <li>• Mastercard</li>
-                <li>• American Express</li>
-                <li>• GrabPay</li>
-                <li>• ShopeePay</li>
-                <li>• Touch 'n Go</li>
+                <li>&bull; Visa</li>
+                <li>&bull; Mastercard</li>
+                <li>&bull; American Express</li>
+                <li>&bull; GrabPay</li>
+                <li>&bull; ShopeePay</li>
+                <li>&bull; Touch 'n Go</li>
 
             </ul>
 
@@ -114,7 +114,7 @@
 
                 <li>1. Install the HitPay Subscription Payment Provider module.</li>
 
-                <li>2. Open <strong>Accounting → Configuration → Payment Providers</strong>.</li>
+                <li>2. Open <strong>Accounting &rarr; Configuration &rarr; Payment Providers</strong>.</li>
 
                 <li>3. Configure your HitPay API credentials.</li>
 
@@ -122,14 +122,14 @@
 
                 <li>5. Enable the recurring payment methods supported by your HitPay account.</li>
 
-                <li>6. The webhook is created automatically during module installation.</li>
+                <li>6. The webhook is managed automatically throughout the payment provider lifecycle.</li>
 
             </ul>
 
         </div>
 
         <div class="oe_span12">
-            <img class="oe_picture oe_screenshot" src="7-Configure-Credentials.png">
+            <!--img class="oe_picture oe_screenshot" src="1-Configure-Credentials.png"-->
         </div>
 
     </div>
@@ -150,11 +150,11 @@
 
                 <li>3. Customer authorizes a recurring payment method.</li>
 
-                <li>4. HitPay securely tokenizes the payment method.</li>
+                <li>4. HitPay securely creates and authorizes the recurring payment method.</li>
 
                 <li>5. Odoo automatically stores the payment token.</li>
 
-                <li>6. The initial subscription payment is completed.</li>
+                <li>6. Odoo performs the initial recurring subscription charge.</li>
 
                 <li>7. Future subscription renewals are charged automatically using the saved payment method.</li>
 
@@ -163,7 +163,7 @@
         </div>
 
         <div class="oe_span12">
-            <img class="oe_picture oe_screenshot" src="9-Frontend-Checkout-Page-Choose-Hitpay.png">
+            <!--img class="oe_picture oe_screenshot" src="2-Frontend-Checkout-Page-Choose-Hitpay.png"-->
         </div>
 
     </div>
@@ -177,25 +177,28 @@
         <div class="oe_span12 text-justify oe_mt32">
 
             <p style="font-size:17px;">
-                The module automatically handles HitPay recurring billing webhooks to manage
-                the payment method lifecycle.
+                The module automatically processes HitPay recurring billing webhooks to manage the 
+				payment method lifecycle and synchronize recurring payment methods with Odoo.
             </p>
 
             <ul class="list-unstyled" style="font-size:17px;">
 
-                <li>• Automatic payment method attachment.</li>
+                <li>&bull; Automatic payment method attachment.</li>
 
-                <li>• Automatic payment method detachment.</li>
+                <li>&bull; Automatic payment method detachment.</li>
 
-                <li>• Secure webhook signature verification.</li>
+                <li>&bull; Secure webhook signature verification.</li>
 
-                <li>• Automatic webhook lifecycle management.</li>
+                <li>&bull; Automatic webhook lifecycle management.</li>
 
             </ul>
 
             <p style="font-size:17px;">
-                Recurring payment transactions are processed synchronously using the immediate
-                API response returned by HitPay, ensuring reliable transaction processing.
+                The module securely processes recurring billing webhooks to manage payment
+				method attachment, detachment, and payment token lifecycle.
+				Recurring subscription payments are processed synchronously using the
+				immediate API response from HitPay, ensuring reliable transaction processing
+				without relying on asynchronous payment notifications.
             </p>
 
         </div>
@@ -242,37 +245,37 @@
 
                     <tr>
                         <td>Subscription Payments</td>
-                        <td>✔</td>
+                        <td>&#10004;</td>
                     </tr>
 
                     <tr>
                         <td>Payment Tokenization</td>
-                        <td>✔</td>
+                        <td>&#10004;</td>
                     </tr>
 
                     <tr>
                         <td>Automatic Subscription Renewal</td>
-                        <td>✔</td>
+                        <td>&#10004;</td>
                     </tr>
 
                     <tr>
                         <td>Saved Payment Methods</td>
-                        <td>✔</td>
+                        <td>&#10004;</td>
                     </tr>
 
                     <tr>
-                        <td>Webhook Registration</td>
-                        <td>✔</td>
+                        <td>Automatic Webhook Lifecycle</td>
+                        <td>&#10004;</td>
                     </tr>
 
                     <tr>
                         <td>Webhook Signature Verification</td>
-                        <td>✔</td>
+                        <td>&#10004;</td>
                     </tr>
 
                     <tr>
                         <td>Automatic Payment Method Lifecycle</td>
-                        <td>✔</td>
+                        <td>&#10004;</td>
                     </tr>
 
                     <tr>
@@ -305,24 +308,30 @@
 
                 <li>
                     <strong>Version 19.0.0.1</strong><br/>
+					
+					&bull; Jul 03, 2026<br/>
 
-                    • Initial release.<br/>
+                    &bull; Initial release.<br/>
 
-                    • Standalone HitPay Subscription payment provider.<br/>
+                    &bull; Standalone HitPay Subscription payment provider.<br/>
+					
+					&bull; Automatic recurring subscription billing.<br/>
 
-                    • Payment tokenization support.<br/>
+                    &bull; Secure recurring payment method tokenization.<br/>
+				
+					&bull; Online and offline token payments.<br/>
 
-                    • Automatic recurring subscription billing.<br/>
+                    &bull; Automatic webhook lifecycle management.<br/>
 
-                    • Automatic webhook registration and cleanup.<br/>
+                    &bull; Secure webhook signature verification.<br/>
 
-                    • Secure webhook signature verification.<br/>
+                    &bull; Automatic payment method lifecycle management.<br/>
 
-                    • Automatic payment method lifecycle management.<br/>
+                    &bull; Configurable recurring payment methods.<br/>
 
-                    • Configurable recurring payment methods.<br/>
-
-                    • Intelligent provider visibility during checkout.
+                    &bull; Intelligent provider visibility during checkout.<br/>
+					
+					&bull; Seamless integration with Odoo Subscriptions.
                 </li>
 
             </ul>
