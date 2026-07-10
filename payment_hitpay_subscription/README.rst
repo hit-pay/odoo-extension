@@ -101,16 +101,20 @@ Deploy on Odoo.sh
 
    .. code:: text
 
-   your-odoo-project/ ├── custom_addons/ │ └──
-   payment_hitpay_subscription/ ├── README.md └── requirements.txt
+   your-odoo-project/
+   ├── custom_addons/
+   │   └── payment_hitpay_subscription/
+   ├── README.md
+   └── requirements.txt
 
 3. Commit the module and push the changes to the appropriate Odoo.sh
    branch.
 
    .. code:: bash
 
-   git add custom_addons/payment_hitpay_subscription git commit -m "Add
-   HitPay Subscription Payment Provider" git push
+   git add custom_addons/payment_hitpay_subscription
+   git commit -m "Add HitPay Subscription Payment Provider"
+   git push
 
 4. Wait for the Odoo.sh build to complete successfully.
 
@@ -180,8 +184,9 @@ Upgrade on Odoo.sh
 
    .. code:: bash
 
-   git add custom_addons/payment_hitpay_subscription git commit -m
-   "Upgrade HitPay Subscription Payment Provider" git push
+   git add custom_addons/payment_hitpay_subscription
+	 git commit -m "Upgrade HitPay Subscription Payment Provider"
+	 git push
 
 3. Wait for the Odoo.sh build to complete successfully.
 
