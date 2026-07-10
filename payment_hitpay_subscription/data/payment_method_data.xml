@@ -13,7 +13,7 @@
 			<field name="support_refund">none</field>
 	</record>
 	
-	<!-- Payment methods -->
+	<!-- Default-enabled methods: omit active=True -->
 	<record id="payment_method_visa_hitpay_subscription" model="payment.method">
 			<field name="sequence">2001</field>
 			<field name="name">Visa</field>
@@ -38,12 +38,14 @@
 			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
 	</record>
 	
+	<!-- Opt-in methods: explicitly keep active=False -->
 	<record id="payment_method_grabpay_hitpay_subscription" model="payment.method">
 			<field name="sequence">2004</field>
 			<field name="name">GrabPay</field>
 			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/grabpay.png"/>
 			<field name="code">grabpay_hitpay</field>
 			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+			<field name="active">False</field>
 	</record>
 	
 	<record id="payment_method_shopeepay_hitpay_subscription" model="payment.method">
@@ -52,6 +54,7 @@
 			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/shopeepay.png"/>
 			<field name="code">shopeepay_hitpay</field>
 			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+			<field name="active">False</field>
 	</record>
 	
  	<record id="payment_method_touchngo_hitpay_subscription" model="payment.method">
@@ -60,6 +63,7 @@
 			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/touchngo.png"/>
 			<field name="code">touchngo_hitpay</field>
 			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+			<field name="active">False</field>
 	</record>
     
 </odoo>

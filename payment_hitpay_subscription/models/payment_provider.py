@@ -2,6 +2,7 @@
 
 import logging
 import pprint
+import re
 
 import requests
 from werkzeug import urls
@@ -42,6 +43,15 @@ class PaymentProvider(models.Model):
         string="HitPay Webhook Event Salt",
         copy=False,
         groups='base.group_system',
+    )
+    
+    hitpay_debug_logging = fields.Boolean(
+        string="API Logging",
+        default=False,
+        help=(
+            "Log sanitized HitPay API requests and responses "
+            "for troubleshooting."
+        ),
     )
     
     _WEBHOOK_TRIGGER_FIELDS = {
@@ -297,6 +307,11 @@ class PaymentProvider(models.Model):
         """
         Synchronize the HitPay webhook when the API key or environment changes,
         when the provider is disabled, and on relevant configuration saves.
+
+        When credentials or environment change, create the replacement webhook
+        before deleting the previous remote webhook. This prevents an Odoo
+        transaction rollback from restoring provider configuration that points
+        to a webhook that was already deleted remotely.
         """
         old_values = {
             provider.id: {
@@ -333,41 +348,71 @@ class PaymentProvider(models.Model):
                 and provider.state == "disabled"
             )
 
-            lifecycle_changed = (
-                credentials_changed
-                or environment_changed
-                or became_disabled
-            )
-
-            if (
-                lifecycle_changed
-                and old["webhook_id"]
-                and old["api_key"]
-            ):
-                try:
-                    provider._delete_remote_webhook(
-                        api_url=old["api_url"],
-                        api_key=old["api_key"],
-                        webhook_id=old["webhook_id"],
-                    )
-                except HitPayAPIError as error:
-                    if error.status_code != 404:
-                        _logger.warning(
-                            "Failed to delete previous HitPay webhook event %s. "
-                            "Reason: %s",
-                            old["webhook_id"],
-                            str(error),
+            # Provider disabled:
+            #
+            # No replacement webhook is required. Delete the previous remote
+            # webhook using the previous credentials/environment, then clear the
+            # local webhook credentials.
+            if became_disabled:
+                if old["webhook_id"] and old["api_key"]:
+                    try:
+                        provider._delete_remote_webhook(
+                            api_url=old["api_url"],
+                            api_key=old["api_key"],
+                            webhook_id=old["webhook_id"],
                         )
+                    except HitPayAPIError as error:
+                        if error.status_code != 404:
+                            _logger.warning(
+                                "Failed to delete previous HitPay webhook event %s. "
+                                "Reason: %s",
+                                old["webhook_id"],
+                                str(error),
+                            )
 
-            if lifecycle_changed:
+                provider._clear_webhook_credentials()
+                continue
+
+            # Credentials/environment changed:
+            #
+            # 1. Clear the old local webhook credentials.
+            # 2. Create a replacement webhook using the new configuration.
+            # 3. Only after successful creation, delete the previous webhook.
+            #
+            # If replacement creation fails, ValidationError causes the database
+            # transaction to roll back. Since the previous remote webhook has not
+            # yet been deleted, the restored provider configuration remains valid.
+            if credentials_changed or environment_changed:
                 provider._clear_webhook_credentials()
 
-            # Synchronize on every relevant configuration save.
+                try:
+                    provider._ensure_webhook_event()
+                except HitPayAPIError as error:
+                    raise ValidationError(str(error)) from None
+
+                # The replacement webhook now exists. Delete the previous remote
+                # webhook using the previous credentials/environment.
+                if old["webhook_id"] and old["api_key"]:
+                    try:
+                        provider._delete_remote_webhook(
+                            api_url=old["api_url"],
+                            api_key=old["api_key"],
+                            webhook_id=old["webhook_id"],
+                        )
+                    except HitPayAPIError as error:
+                        if error.status_code != 404:
+                            _logger.warning(
+                                "Failed to delete previous HitPay webhook event %s. "
+                                "Reason: %s",
+                                old["webhook_id"],
+                                str(error),
+                            )
+
+                continue
+
+            # Relevant configuration save without a lifecycle change:
             #
-            # If lifecycle_changed is True, this creates a webhook using the new
-            # credentials/environment.
-            #
-            # Otherwise this GETs the existing webhook and updates its URL when
+            # Validate the existing webhook and synchronize its callback URL when
             # required.
             if provider.state != "disabled":
                 try:
@@ -396,32 +441,49 @@ class PaymentProvider(models.Model):
         return providers
         
     def unlink(self):
-        """Delete managed HitPay webhooks before removing provider records."""
-        for provider in self.filtered(
-            lambda p: p.code == const.PROVIDER_CODE
-        ):
-            webhook_id = provider.hitpay_webhook_event_id
+        """Delete managed HitPay webhooks after removing provider records."""
+        webhook_data = [
+            {
+                "api_url": provider._get_api_url(),
+                "api_key": provider.hitpay_subscription_api_key,
+                "webhook_id": provider.hitpay_webhook_event_id,
+            }
+            for provider in self.filtered(
+                lambda p: (
+                    p.code == const.PROVIDER_CODE
+                    and p.hitpay_webhook_event_id
+                    and p.hitpay_subscription_api_key
+                )
+            )
+        ]
 
-            if not webhook_id:
-                continue
+        # Delete the provider records first.
+        #
+        # If unlink is blocked by Odoo constraints, access rules, or another
+        # exception, no remote webhook has been deleted.
+        res = super().unlink()
 
+        # The local deletion succeeded. Perform best-effort remote cleanup.
+        #
+        # Do not raise here: an external API failure cannot safely restore the
+        # already-deleted Odoo provider records.
+        for data in webhook_data:
             try:
-                provider._delete_remote_webhook(
-                    api_url=provider._get_api_url(),
-                    api_key=provider.hitpay_subscription_api_key,
-                    webhook_id=webhook_id,
+                self.env["payment.provider"]._delete_remote_webhook(
+                    api_url=data["api_url"],
+                    api_key=data["api_key"],
+                    webhook_id=data["webhook_id"],
                 )
             except HitPayAPIError as error:
                 if error.status_code != 404:
                     _logger.warning(
-                        "Failed to delete HitPay webhook event %s "
-                        "while deleting payment provider %s. Reason: %s",
-                        webhook_id,
-                        provider.id,
+                        "Failed to delete HitPay webhook event %s after deleting "
+                        "the payment provider. Reason: %s",
+                        data["webhook_id"],
                         str(error),
                     )
 
-        return super().unlink()
+        return res
         
     def _get_api_url(self):
         return const.API_SANDBOX_URL if self.state == "test" else const.API_BASE_URL
@@ -524,14 +586,14 @@ class PaymentProvider(models.Model):
                 endpoint,
                 response,
                 error,
+                response_content,
             )
 
             # Keep an ERROR log regardless of the provider debug setting.
             _logger.error(
-                "HitPay HTTP %s for %s. Reason: %s",
+                "HitPay HTTP %s for %s.",
                 response.status_code,
-                endpoint,
-                str(error),
+                self._sanitize_hitpay_endpoint(endpoint),
             )
 
             error_code = (
@@ -564,6 +626,7 @@ class PaymentProvider(models.Model):
             method,
             endpoint,
             response,
+            response_content,
         )
 
         return response_content
@@ -701,6 +764,9 @@ class PaymentProvider(models.Model):
             "buyer_phone",
             "buyer_email",
             "webhook",
+            'url',
+            'return_url',
+            'customer_phone_number',
         }
 
         if isinstance(data, dict):
@@ -718,24 +784,30 @@ class PaymentProvider(models.Model):
                 self._sanitize_debug_data(value)
                 for value in data
             ]
+            
+        if isinstance(data, str):
+            data = re.sub(
+                r"(?<=/charge/recurring-billing/)[^/?#\s]+",
+                "<redacted>",
+                data,
+            )
+
+            data = re.sub(
+                r"(?<=/webhook-events/)[^/?#\s]+",
+                "<redacted>",
+                data,
+            )
+
+            # HitPay 404 responses can include:
+            #
+            # No query results for Webhook #<webhook_id>
+            data = re.sub(
+                r"(?i)(Webhook\s+#)[^\s'\"/]+",
+                r"\1<redacted>",
+                data,
+            )
 
         return data
-
-
-    def _prepare_response_for_debug(self, response):
-        """Return sanitized JSON response data for logging."""
-        if not response.content:
-            return ""
-
-        try:
-            data = response.json()
-        except ValueError:
-            return "[Non-JSON response omitted]"
-
-        return pprint.pformat(
-            self._sanitize_debug_data(data)
-        )
-
 
     def _log_hitpay_request(
         self,
@@ -746,15 +818,16 @@ class PaymentProvider(models.Model):
     ):
         """Log a sanitized HitPay API request."""
         self.ensure_one()
+        
+        if not self.hitpay_debug_logging:
+            return
 
         _logger.info(
             "HitPay API [%s] request: %s %s. Payload: %s",
             environment,
             method,
-            endpoint,
-            pprint.pformat(
-                self._sanitize_debug_data(payload)
-            ),
+            self._sanitize_hitpay_endpoint(endpoint),
+            self._sanitize_debug_data(payload),
         )
 
 
@@ -764,18 +837,23 @@ class PaymentProvider(models.Model):
         method,
         endpoint,
         response,
+        data,
     ):
         """Log a sanitized HitPay API response."""
         self.ensure_one()
+        
+        if not self.hitpay_debug_logging:
+            return
 
         _logger.info(
-            "HitPay API [%s] response: %s %s. "
-            "HTTP status: %s. Body: %s",
+            "HitPay API [%s] response: %s %s. Status: %s. Response: %s",
             environment,
             method,
-            endpoint,
+            self._sanitize_hitpay_endpoint(endpoint),
             response.status_code,
-            self._prepare_response_for_debug(response),
+            pprint.pformat(
+                self._sanitize_debug_data(data)
+            ),
         )
 
 
@@ -786,6 +864,7 @@ class PaymentProvider(models.Model):
         endpoint,
         response,
         error,
+        data=None,
     ):
         """Log a sanitized HitPay API request failure."""
         self.ensure_one()
@@ -796,19 +875,61 @@ class PaymentProvider(models.Model):
             else 0
         )
 
-        response_body = (
-            self._prepare_response_for_debug(response)
+        # requests HTTPError messages may contain the complete request URL,
+        # including sensitive identifiers in endpoint path parameters.
+        #
+        # For HTTP failures, log only the exception class. The status code,
+        # sanitized endpoint, and sanitized response payload provide the
+        # necessary diagnostic information.
+        error_reason = (
+            type(error).__name__
             if response is not None
-            else ""
+            else str(error)
         )
 
-        _logger.info(
-            "HitPay API [%s] request failed: %s %s. "
-            "HTTP status: %s. Response: %s. Error: %s",
+        _logger.warning(
+            "HitPay API [%s] failure: %s %s. Status: %s. "
+            "Reason: %s. Response: %s",
             environment,
             method,
-            endpoint,
+            self._sanitize_hitpay_endpoint(endpoint),
             status_code,
-            response_body,
-            str(error),
+            error_reason,
+            pprint.pformat(
+                self._sanitize_debug_data(data)
+            ),
         )
+        
+    def _sanitize_hitpay_endpoint(self, endpoint):
+        """Redact sensitive identifiers from HitPay API endpoint paths."""
+        self.ensure_one()
+
+        if not endpoint:
+            return endpoint
+
+        endpoint = str(endpoint)
+
+        # Redact recurring billing identifiers.
+        #
+        # /charge/recurring-billing/{recurring_id}
+        # ->
+        # /charge/recurring-billing/<redacted>
+        endpoint = re.sub(
+            r"(?<=/charge/recurring-billing/)[^/?#]+",
+            "<redacted>",
+            endpoint,
+        )
+
+        # Redact webhook identifiers.
+        #
+        # /webhook-events/{webhook_id}
+        # ->
+        # /webhook-events/<redacted>
+        endpoint = re.sub(
+            r"(?<=/webhook-events/)[^/?#]+",
+            "<redacted>",
+            endpoint,
+        )
+
+        return endpoint      
+

@@ -7,7 +7,7 @@ DEFAULT_PAYMENT_METHOD_CODES = (
 TRANSACTION_STATUS_MAPPING = {
     "pending": ("pending",),
     "done": ("completed", "succeeded"),
-    "canceled": ("canceled", "failed", "None"),
+    "canceled": ("canceled", "failed", "null"),
 }
 
 REQUEST_TIMEOUT = 20
