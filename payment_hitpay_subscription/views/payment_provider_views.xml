@@ -10,6 +10,7 @@
                 <group invisible="code != 'hitpay_subscription'">
                     <field name="hitpay_subscription_api_key" string="API Key" required="code == 'hitpay_subscription' and state != 'disabled'" />
                     <field name="hitpay_subscription_api_salt" string="Salt" required="code == 'hitpay_subscription' and state != 'disabled'" password="True"/>
+										<field name="hitpay_debug_logging" string="API Logging"	invisible="code != 'hitpay_subscription' or state == 'disabled'" />
                 </group>
             </group>
         </field>

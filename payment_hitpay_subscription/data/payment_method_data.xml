@@ -4,69 +4,66 @@
 
 	<!-- Primary provider -->
 	<record id="payment_method_hitpay_subscription" model="payment.method">
-        <field name="name"><![CDATA[HitPay Subscription]]></field>
-        <field name="code">hitpay_subscription</field>
-        <field name="sequence">2000</field>
-        <field name="image" type="base64" file="payment_hitpay_subscription/static/description/logo.png" />
-        <field name="support_tokenization">True</field>
-        <field name="support_express_checkout">False</field>
-        <field name="support_refund">none</field>
-    </record>
+			<field name="name"><![CDATA[HitPay Subscription]]></field>
+			<field name="code">hitpay_subscription</field>
+			<field name="sequence">2000</field>
+			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/logo.png" />
+			<field name="support_tokenization">True</field>
+			<field name="support_express_checkout">False</field>
+			<field name="support_refund">none</field>
+	</record>
 	
-	<!-- Card payment methods -->
+	<!-- Default-enabled methods: omit active=True -->
 	<record id="payment_method_visa_hitpay_subscription" model="payment.method">
-        <field name="sequence">2001</field>
-        <field name="name">Visa</field>
-        <field name="image" type="base64" file="payment_hitpay_subscription/static/description/visa.png"/>
-		<field name="code">visa_hitpay</field>
-        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
-		<field name="active">True</field>
-    </record>
+			<field name="sequence">2001</field>
+			<field name="name">Visa</field>
+			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/visa.png"/>
+			<field name="code">visa_hitpay</field>
+			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+	</record>
 	
 	<record id="payment_method_master_hitpay_subscription" model="payment.method">
-        <field name="sequence">2002</field>
-        <field name="name">Mastercard</field>
-        <field name="image" type="base64" file="payment_hitpay_subscription/static/description/master.png"/>
-		<field name="code">master_hitpay</field>
-        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
-		<field name="active">True</field>
-    </record>
+			<field name="sequence">2002</field>
+			<field name="name">Mastercard</field>
+			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/master.png"/>
+			<field name="code">master_hitpay</field>
+			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+  </record>
 	
 	<record id="payment_method_amex_hitpay_subscription" model="payment.method">
-        <field name="sequence">2003</field>
-        <field name="name">American Express</field>
-        <field name="image" type="base64" file="payment_hitpay_subscription/static/description/amex.png"/>
-		<field name="code">amex_hitpay</field>
-        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
-		<field name="active">True</field>
-    </record>
+			<field name="sequence">2003</field>
+			<field name="name">American Express</field>
+			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/amex.png"/>
+			<field name="code">amex_hitpay</field>
+			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+	</record>
 	
-	<!-- Alternative recurring payment methods (disabled by default) -->
-    <record id="payment_method_grabpay_hitpay_subscription" model="payment.method">
-        <field name="sequence">2004</field>
-        <field name="name">GrabPay</field>
-        <field name="image" type="base64" file="payment_hitpay_subscription/static/description/grabpay.png"/>
-		<field name="code">grabpay_hitpay</field>
-        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
-		<field name="active">False</field>
-    </record>
+	<!-- Opt-in methods: explicitly keep active=False -->
+	<record id="payment_method_grabpay_hitpay_subscription" model="payment.method">
+			<field name="sequence">2004</field>
+			<field name="name">GrabPay</field>
+			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/grabpay.png"/>
+			<field name="code">grabpay_hitpay</field>
+			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+			<field name="active">False</field>
+	</record>
 	
-    <record id="payment_method_shopeepay_hitpay_subscription" model="payment.method">
-        <field name="sequence">2005</field>
-        <field name="name">ShopeePay</field>
-        <field name="image" type="base64" file="payment_hitpay_subscription/static/description/shopeepay.png"/>
-		<field name="code">shopeepay_hitpay</field>
-        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
-		<field name="active">False</field>
-    </record>
+	<record id="payment_method_shopeepay_hitpay_subscription" model="payment.method">
+			<field name="sequence">2005</field>
+			<field name="name">ShopeePay</field>
+			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/shopeepay.png"/>
+			<field name="code">shopeepay_hitpay</field>
+			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+			<field name="active">False</field>
+	</record>
 	
  	<record id="payment_method_touchngo_hitpay_subscription" model="payment.method">
-        <field name="sequence">2006</field>
-        <field name="name">Touch 'n Go</field>
-        <field name="image" type="base64" file="payment_hitpay_subscription/static/description/touchngo.png"/>
-		<field name="code">touchngo_hitpay</field>
-        <field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
-		<field name="active">False</field>
-    </record>
+			<field name="sequence">2006</field>
+			<field name="name">Touch 'n Go</field>
+			<field name="image" type="base64" file="payment_hitpay_subscription/static/description/touchngo.png"/>
+			<field name="code">touchngo_hitpay</field>
+			<field name="primary_payment_method_id" eval="ref('payment_method_hitpay_subscription')" />
+			<field name="active">False</field>
+	</record>
     
 </odoo>

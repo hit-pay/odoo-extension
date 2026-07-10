@@ -214,7 +214,7 @@
         <div class="oe_span12 text-justify oe_mt32">
 
             <p style="font-size:17px;">
-                Subscription products intended for automatic recurring billing should use
+                Subscription products intended for automatic invoicing should use
                 <strong>Invoicing Policy = Ordered Quantities</strong>.
                 Products configured with <strong>Delivered Quantities</strong> cannot be
                 automatically invoiced until they become invoiceable according to Odoo's
@@ -306,20 +306,46 @@
 
             <ul class="list-unstyled" style="font-size:17px;">
 
+								<li>
+                    <strong>Version 19.0.0.2</strong><br/>
+					
+										&bull; Jul 10, 2026<br/>
+
+                    &bull; Fixed webhook lifecycle synchronization, cleanup, and automatic recovery.<br/>
+										
+										&bull; Fixed webhook salt preservation and recovery when local webhook data is incomplete.<br/>
+										
+										&bull; Fixed webhook cleanup when provider credentials, environment, or state changes.<br/>
+										
+										&bull; Fixed module upgrades failing while updating payment method records.<br/>
+										
+										&bull; Fixed API errors displaying as generic Odoo server errors during provider configuration and payment processing.<br/>
+										
+										&bull; Fixed validation of malformed or incomplete HitPay API responses.<br/>
+										
+										&bull; Improved webhook API error handling with HTTP status-aware recovery.<br/>
+										
+										&bull; Improved stale and duplicate webhook cleanup.<br/>
+										
+										&bull; Improved sanitized API request and response logging.<br/>
+										
+										&bull; Improved recurring billing error handling and transaction response validation.<br/>
+                </li>
+								
                 <li>
                     <strong>Version 19.0.0.1</strong><br/>
 					
-					&bull; Jul 03, 2026<br/>
+										&bull; Jul 03, 2026<br/>
 
                     &bull; Initial release.<br/>
 
                     &bull; Standalone HitPay Subscription payment provider.<br/>
 					
-					&bull; Automatic recurring subscription billing.<br/>
+										&bull; Automatic recurring subscription billing.<br/>
 
                     &bull; Secure recurring payment method tokenization.<br/>
 				
-					&bull; Online and offline token payments.<br/>
+										&bull; Online and offline token payments.<br/>
 
                     &bull; Automatic webhook lifecycle management.<br/>
 
@@ -331,7 +357,7 @@
 
                     &bull; Intelligent provider visibility during checkout.<br/>
 					
-					&bull; Seamless integration with Odoo Subscriptions.
+										&bull; Seamless integration with Odoo Subscriptions.
                 </li>
 
             </ul>

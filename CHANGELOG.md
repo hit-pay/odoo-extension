@@ -4,6 +4,18 @@ All notable changes to the HitPay Odoo Payment Gateway modules.
 
 ## Odoo 19.0
 
+### payment_hitpay_subscription v19.0.0.2 - Jul 10, 2026
+* Fixed webhook lifecycle synchronization, cleanup, and automatic recovery.
+* Fixed webhook salt preservation and recovery when local webhook data is incomplete.
+* Fixed webhook cleanup when provider credentials, environment, or state changes.
+* Fixed module upgrades failing while updating payment method records.
+* Fixed API errors displaying as generic Odoo server errors during provider configuration and payment processing.
+* Fixed validation of malformed or incomplete HitPay API responses.
+* Improved webhook API error handling with HTTP status-aware recovery.
+* Improved stale and duplicate webhook cleanup.
+* Improved sanitized API request and response logging.
+* Improved recurring billing error handling and transaction response validation.
+
 ### payment_hitpay_subscription v19.0.0.1 - Jul 03, 2026
 * Initial release.
 * Standalone HitPay Subscription payment provider for Odoo Enterprise.

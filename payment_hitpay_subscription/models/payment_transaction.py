@@ -6,6 +6,7 @@ from odoo import _, models, fields
 from odoo.exceptions import ValidationError
 
 from odoo.addons.payment_hitpay_subscription import const
+from odoo.addons.payment_hitpay_subscription.exceptions import HitPayAPIError
 
 _logger = logging.getLogger(__name__)
 
@@ -31,27 +32,38 @@ class PaymentTransaction(models.Model):
         res = super()._get_specific_rendering_values(processing_values)
         if self.provider_code != const.PROVIDER_CODE:
             return res
-
-        # Initiate the payment and retrieve the payment link data.
-        payload = self._prepare_recurring_billing_payload()
-
-        
-        payment_response = self.provider_id._hitpay_make_request(
-            '/recurring-billing', payload=payload
-        )
-
-        if "id" not in payment_response or "url" not in payment_response:
-            self.provider_id._raise_api_error(
-                _("HitPay API response missing required fields 'id' or 'url'.")
+            
+        try:
+            # Initiate the payment and retrieve the payment link data.
+            payload = self._prepare_recurring_billing_payload()
+            
+            payment_response = self.provider_id._hitpay_make_request(
+                "/recurring-billing",
+                payload=payload,
             )
 
-        self.write({
-            "hitpay_recurring_billing_id": payment_response["id"],
-        })
+            if (
+                not isinstance(payment_response, dict)
+                or not payment_response.get("id")
+                or not payment_response.get("url")
+            ):
+                raise ValidationError(
+                    _(
+                        "HitPay API response is missing required "
+                        "'id' or 'url' fields."
+                    )
+                )
 
-        return {
-            "api_url": payment_response["url"],
-        }
+            self.write({
+                "hitpay_recurring_billing_id": payment_response["id"],
+            })
+
+            return {
+                "api_url": payment_response["url"],
+            }
+        
+        except HitPayAPIError as error:
+            raise ValidationError(str(error)) from None
 
     def _prepare_recurring_billing_payload(self):
         """ Create the payload for the preference request based on the transaction values.
@@ -121,10 +133,14 @@ class PaymentTransaction(models.Model):
         payment_amount = payment_data.get("amount")
         
         if not payment_id:
-            self.provider_id._raise_api_error("Hitpay: Received data with missing payment id.")
+            raise ValidationError(
+                _("HitPay: Received data with missing payment ID.")
+            )
 
         if not payment_status:
-            self.provider_id._raise_api_error("Hitpay: Received data with missing status.")
+            raise ValidationError(
+                _("HitPay: Received data with missing status.")
+            )
 
         if payment_status in const.TRANSACTION_STATUS_MAPPING['pending']:
             message = (
@@ -210,6 +226,15 @@ class PaymentTransaction(models.Model):
             f"/charge/recurring-billing/{recurring_id}",
             payload=payload,
         )
+        
+        if not isinstance(response, dict):
+            _logger.error(
+                "HitPay returned an invalid recurring charge response."
+            )
+            self._set_error(
+                _("HitPay returned an invalid recurring charge response.")
+            )
+            return False
 
         payment_id = response.get("payment_id")
 
@@ -245,15 +270,18 @@ class PaymentTransaction(models.Model):
         return True
 
     def _send_payment_request(self):
-
         if self.provider_code != const.PROVIDER_CODE:
             return super()._send_payment_request()
 
         recurring_id = self.token_id.provider_ref
-        success = self._charge_recurring_billing(recurring_id)
+
+        try:
+            success = self._charge_recurring_billing(recurring_id)
+        except HitPayAPIError as error:
+            raise ValidationError(str(error)) from None
 
         if not success:
-            self.provider_id._raise_api_error(
+            raise ValidationError(
                 _("HitPay recurring charge failed.")
             )
             
