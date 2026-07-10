@@ -264,7 +264,8 @@ class PaymentProvider(models.Model):
                         raise
 
         return self._create_webhook()
-        
+    
+    @api.model
     def _delete_remote_webhook(
         self,
         *,
@@ -272,13 +273,7 @@ class PaymentProvider(models.Model):
         api_key,
         webhook_id,
     ):
-        """
-        Delete a remote HitPay webhook using explicit credentials.
-
-        This method does not modify the provider's locally stored webhook fields.
-        """
-        self.ensure_one()
-
+        """Delete a remote HitPay webhook using explicit credentials."""
         if not webhook_id:
             return
 
@@ -287,11 +282,6 @@ class PaymentProvider(models.Model):
             method="DELETE",
             api_url=api_url,
             api_key=api_key,
-        )
-
-        _logger.info(
-            "Deleted HitPay webhook event %s.",
-            webhook_id,
         )
     
     def _ensure_webhook_event(self):
@@ -364,10 +354,12 @@ class PaymentProvider(models.Model):
                     except HitPayAPIError as error:
                         if error.status_code != 404:
                             _logger.warning(
-                                "Failed to delete previous HitPay webhook event %s. "
-                                "Reason: %s",
-                                old["webhook_id"],
-                                str(error),
+                                "Failed to delete previous HitPay webhook event. "
+                                "Endpoint: %s. Status: %s.",
+                                provider._sanitize_hitpay_endpoint(
+                                    f"/webhook-events/{old['webhook_id']}"
+                                ),
+                                error.status_code,
                             )
 
                 provider._clear_webhook_credentials()
@@ -402,10 +394,12 @@ class PaymentProvider(models.Model):
                     except HitPayAPIError as error:
                         if error.status_code != 404:
                             _logger.warning(
-                                "Failed to delete previous HitPay webhook event %s. "
-                                "Reason: %s",
-                                old["webhook_id"],
-                                str(error),
+                                "Failed to delete previous HitPay webhook event. "
+                                "Endpoint: %s. Status: %s.",
+                                provider._sanitize_hitpay_endpoint(
+                                    f"/webhook-events/{old['webhook_id']}"
+                                ),
+                                error.status_code,
                             )
 
                 continue
@@ -477,10 +471,12 @@ class PaymentProvider(models.Model):
             except HitPayAPIError as error:
                 if error.status_code != 404:
                     _logger.warning(
-                        "Failed to delete HitPay webhook event %s after deleting "
-                        "the payment provider. Reason: %s",
-                        data["webhook_id"],
-                        str(error),
+                        "Failed to delete HitPay webhook event after deleting "
+                        "the payment provider. Endpoint: %s. Status: %s.",
+                        self.env["payment.provider"]._sanitize_hitpay_endpoint(
+                            f"/webhook-events/{data['webhook_id']}"
+                        ),
+                        error.status_code,
                     )
 
         return res
@@ -510,19 +506,36 @@ class PaymentProvider(models.Model):
         api_key=None,
     ):
         """Make a request to the HitPay API."""
-        self.ensure_one()
-        
+        if self:
+            self.ensure_one()
+        elif not api_url or not api_key:
+            raise ValueError(
+                "api_url and api_key are required when making a HitPay API "
+                "request without a payment provider record."
+            )
+
         effective_api_url = api_url or self._get_api_url()
-        
+
         url = effective_api_url + endpoint
-        
+
         environment = (
             "sandbox"
             if effective_api_url == const.API_SANDBOX_URL
             else "live"
         )
 
-        headers = self._get_request_headers(api_key=api_key)
+        effective_api_key = (
+            api_key
+            or self.hitpay_subscription_api_key
+        )
+
+        debug_logging = bool(
+            self and self.hitpay_debug_logging
+        )
+
+        headers = self._get_request_headers(
+            api_key=effective_api_key,
+        )
 
         request_kwargs = {
             "headers": headers,
@@ -545,6 +558,7 @@ class PaymentProvider(models.Model):
             method,
             endpoint,
             payload,
+            debug_logging=debug_logging,
         )
 
         try:
@@ -561,6 +575,7 @@ class PaymentProvider(models.Model):
                 endpoint,
                 None,
                 error,
+                debug_logging=debug_logging,
             )
 
             self._raise_api_error(
@@ -573,7 +588,7 @@ class PaymentProvider(models.Model):
             response_content = response.json()
         except ValueError:
             response_content = {
-                "_raw_response": response.text,
+                "_raw_response": "[Non-JSON response omitted]",
             }
 
         try:
@@ -587,26 +602,24 @@ class PaymentProvider(models.Model):
                 response,
                 error,
                 response_content,
+                debug_logging=debug_logging,
             )
 
-            # Keep an ERROR log regardless of the provider debug setting.
             _logger.error(
                 "HitPay HTTP %s for %s.",
                 response.status_code,
                 self._sanitize_hitpay_endpoint(endpoint),
             )
 
-            error_code = (
-                response_content.get("error")
-                if isinstance(response_content, dict)
-                else None
-            )
-
-            error_message = (
-                response_content.get("message")
-                if isinstance(response_content, dict)
-                else None
-            )
+            if isinstance(response_content, dict):
+                error_code = (
+                    response_content.get("error")
+                    or response_content.get("error_code")
+                )
+                error_message = response_content.get("message")
+            else:
+                error_code = None
+                error_message = None
 
             self._raise_api_error(
                 "HitPay Subscription: "
@@ -627,6 +640,7 @@ class PaymentProvider(models.Model):
             endpoint,
             response,
             response_content,
+            debug_logging=debug_logging,
         )
 
         return response_content
@@ -659,12 +673,15 @@ class PaymentProvider(models.Model):
             "event_types": list(const.WEBHOOK_EVENT_TYPES)
         }
         
-    def _get_request_headers(self, api_key=None):
+    @api.model
+    def _get_request_headers(self, api_key):
+        """Return HitPay API request headers."""
         return {
             "X-Requested-With": "XMLHttpRequest",
-            "X-BUSINESS-API-KEY": api_key or self.hitpay_subscription_api_key,
+            "X-BUSINESS-API-KEY": api_key,
         }
-        
+    
+    @api.model    
     def _raise_api_error(
         self,
         message,
@@ -740,7 +757,8 @@ class PaymentProvider(models.Model):
             providers -= subscription_provider
         
         return providers
-        
+    
+    @api.model    
     def _sanitize_debug_data(self, data):
         """Return API data with sensitive values redacted for logging."""
         sensitive_keys = {
@@ -809,17 +827,18 @@ class PaymentProvider(models.Model):
 
         return data
 
+    @api.model
     def _log_hitpay_request(
         self,
         environment,
         method,
         endpoint,
         payload,
+        *,
+        debug_logging=False,
     ):
-        """Log a sanitized HitPay API request."""
-        self.ensure_one()
-        
-        if not self.hitpay_debug_logging:
+        """Log a sanitized HitPay API request when API logging is enabled."""
+        if not debug_logging:
             return
 
         _logger.info(
@@ -827,10 +846,13 @@ class PaymentProvider(models.Model):
             environment,
             method,
             self._sanitize_hitpay_endpoint(endpoint),
-            self._sanitize_debug_data(payload),
+            pprint.pformat(
+                self._sanitize_debug_data(payload)
+            ),
         )
 
 
+    @api.model
     def _log_hitpay_response(
         self,
         environment,
@@ -838,11 +860,11 @@ class PaymentProvider(models.Model):
         endpoint,
         response,
         data,
+        *,
+        debug_logging=False,
     ):
-        """Log a sanitized HitPay API response."""
-        self.ensure_one()
-        
-        if not self.hitpay_debug_logging:
+        """Log a sanitized HitPay API response when API logging is enabled."""
+        if not debug_logging:
             return
 
         _logger.info(
@@ -857,6 +879,7 @@ class PaymentProvider(models.Model):
         )
 
 
+    @api.model
     def _log_hitpay_request_failure(
         self,
         environment,
@@ -865,44 +888,45 @@ class PaymentProvider(models.Model):
         response,
         error,
         data=None,
+        *,
+        debug_logging=False,
     ):
         """Log a sanitized HitPay API request failure."""
-        self.ensure_one()
-
         status_code = (
             response.status_code
             if response is not None
             else 0
         )
 
-        # requests HTTPError messages may contain the complete request URL,
-        # including sensitive identifiers in endpoint path parameters.
-        #
-        # For HTTP failures, log only the exception class. The status code,
-        # sanitized endpoint, and sanitized response payload provide the
-        # necessary diagnostic information.
         error_reason = (
             type(error).__name__
             if response is not None
-            else str(error)
+            else self._sanitize_debug_data(str(error))
         )
 
         _logger.warning(
-            "HitPay API [%s] failure: %s %s. Status: %s. "
-            "Reason: %s. Response: %s",
+            "HitPay API [%s] failure: %s %s. Status: %s. Reason: %s",
             environment,
             method,
             self._sanitize_hitpay_endpoint(endpoint),
             status_code,
             error_reason,
-            pprint.pformat(
-                self._sanitize_debug_data(data)
-            ),
         )
-        
+
+        if debug_logging:
+            _logger.info(
+                "HitPay API [%s] failure response: %s %s. Response: %s",
+                environment,
+                method,
+                self._sanitize_hitpay_endpoint(endpoint),
+                pprint.pformat(
+                    self._sanitize_debug_data(data)
+                ),
+            )
+    
+    @api.model
     def _sanitize_hitpay_endpoint(self, endpoint):
         """Redact sensitive identifiers from HitPay API endpoint paths."""
-        self.ensure_one()
 
         if not endpoint:
             return endpoint
