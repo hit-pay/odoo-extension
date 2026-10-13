@@ -130,12 +130,14 @@ export class PaymentPosHitpay extends PaymentInterface {
             .then(function (result) {
                 const invoice = result.response
 
-                if (invoice.success) {
-                } else {
-                  self._show_error(invoice.message)
+                if (!invoice.success) {
+                  // Keep polling: the payment may have completed just before
+                  // the cancel, and the next poll marks the line as done.
+                  self._show_error(invoice.error?.message || invoice.error || invoice.message)
                   return Promise.resolve(false);
                 }
 
+                self.was_cancelled = true
                 return Promise.resolve(true);
             })
     }
