@@ -81,6 +81,18 @@ class PosPaymentMethod(models.Model):
 
         payment_method = self.get_hitpay_payment_method_by_id(data['payment_method_id'])
 
+        # Deleting the payment request does not stop the terminal, so cancel
+        # the reader first or it keeps asking the customer to tap their card.
+        # If the reader can't be stopped, keep the payment request so a tap
+        # that still goes through is recorded against it.
+        if payment_method.pos_hitpay_terminal_identifier:
+            reader = self.hitpayPosClient.cancelReader(
+                self.hitpayPosClient,
+                payment_method
+            )
+            if not reader.get('success'):
+                return { 'response': reader }
+
         invoice = self.hitpayPosClient.deletePaymentRequest(
             self.hitpayPosClient,
             payment_method,

@@ -174,6 +174,35 @@ class HitpayPosClient():
         
         return response
 
+    def cancelReader(self, payment_method):
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-BUSINESS-API-KEY': payment_method.pos_hitpay_api_key,
+        }
+
+        endpoint = '/readers/cancel'
+
+        url = self.getApiURL(self, payment_method)+endpoint
+
+        payload = {'reader_id': payment_method.pos_hitpay_terminal_identifier}
+
+        # The cashier waits on this call, so give up sooner than the other calls.
+        try:
+            res = requests.post(url, data=payload, headers=headers, timeout=5)
+        except requests.exceptions.RequestException as err:
+            return self.errorHandler.handleError('cancelReader', err)
+
+        # A successful cancel returns 204 with no body.
+        if not res.ok:
+            try:
+                message = json.loads(res.text).get('message')
+            except ValueError:
+                message = res.text
+            return self.errorHandler.handleError('cancelReader', message, res.status_code)
+
+        return {'success': True}
+
     def refundPayment(self, payment_method, payload):
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
