@@ -4,6 +4,10 @@ All notable changes to the HitPay Odoo Payment Gateway modules.
 
 ## Odoo 19.0
 
+### pos_hitpay v19.0.0.2 - Oct 13, 2026
+- Fixed the terminal still asking for a card after the payment is canceled in POS
+- Fixed an empty error dialog when canceling a payment fails
+
 ### payment_hitpay_subscription v19.0.0.1 - Jul 03, 2026
 * Initial release.
 * Standalone HitPay Subscription payment provider for Odoo Enterprise.
@@ -19,10 +23,6 @@ All notable changes to the HitPay Odoo Payment Gateway modules.
 - Initial release
 - Ecommerce payment provider
 - Compatible with POS Online Payment method as a payment provider
-
-### pos_hitpay v19.0.0.2 - Oct 13, 2026
-- Fixed the terminal still asking for a card after the payment is canceled in POS
-- Fixed an empty error dialog when canceling a payment fails
 
 ### pos_hitpay v19.0.0.1 - Feb 19, 2026
 - Initial release

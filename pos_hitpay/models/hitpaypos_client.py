@@ -187,18 +187,21 @@ class HitpayPosClient():
 
         payload = {'reader_id': payment_method.pos_hitpay_terminal_identifier}
 
+        # The cashier waits on this call, so give up sooner than the other calls.
         try:
-            res = requests.post(url, data=payload, headers=headers, timeout=10)
-            response = json.loads(res.text)
-        except (requests.exceptions.RequestException, ValueError) as err:
+            res = requests.post(url, data=payload, headers=headers, timeout=5)
+        except requests.exceptions.RequestException as err:
             return self.errorHandler.handleError('cancelReader', err)
 
-        _logger.info(
-            "CancelReader Response for %s :\n%s",
-            endpoint, pprint.pformat(response),
-        )
+        # A successful cancel returns 204 with no body.
+        if not res.ok:
+            try:
+                message = json.loads(res.text).get('message')
+            except ValueError:
+                message = res.text
+            return self.errorHandler.handleError('cancelReader', message, res.status_code)
 
-        return response
+        return {'success': True}
 
     def refundPayment(self, payment_method, payload):
         headers = {

@@ -133,7 +133,7 @@ export class PaymentPosHitpay extends PaymentInterface {
                 if (!invoice.success) {
                   // Keep polling: the payment may have completed just before
                   // the cancel, and the next poll marks the line as done.
-                  self._show_error(invoice.error?.message || invoice.error || invoice.message)
+                  self._show_error(String(invoice.error?.message || invoice.error || invoice.message || _t('Could not cancel the payment. Please try again.')))
                   return Promise.resolve(false);
                 }
 

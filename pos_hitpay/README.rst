@@ -92,6 +92,12 @@ Refunds
 Change Log
 ==========
 
+19.0.0.2
+--------------------
+* Oct 13, 2026
+* Fixed the terminal still asking for a card after the payment is canceled in POS.
+* Fixed an empty error dialog when canceling a payment fails.
+
 19.0.0.1
 --------------------
 * Feb 19, 2026
